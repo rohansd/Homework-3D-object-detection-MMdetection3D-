@@ -36,6 +36,9 @@ If is_aligned is False, then calculate the ious between each bbox of bboxes1 and
 ###### Command 
 bash tools/dist_test.sh configs/pointpillars/hv_pointpillars_secfpn_6x8_160e_kitti-3d-3class.py work_dirs/hv_pointpillars_secfpn_6x8_160e_kitti-3d-3class/latest.pth 1 --eval bbox
 
+
+## RESULTS
+
 <img width="1440" alt="Screen Shot 2022-07-24 at 8 26 44 PM" src="https://user-images.githubusercontent.com/78194318/180707825-3c4eb973-8da5-4e2b-841b-87172bc533c7.png">
 <img width="1440" alt="Screen Shot 2022-07-24 at 8 26 47 PM" src="https://user-images.githubusercontent.com/78194318/180707836-6009ec04-7024-4c5e-88a2-b170f34cc6bf.png">
 <img width="1440" alt="Screen Shot 2022-07-24 at 8 26 49 PM" src="https://user-images.githubusercontent.com/78194318/180707843-d1af0ae4-5048-40d6-b76b-8ae06a4cc8d4.png">
@@ -44,7 +47,11 @@ bash tools/dist_test.sh configs/pointpillars/hv_pointpillars_secfpn_6x8_160e_kit
 
 ### Part 5 - inference pipeline
 
+IPYNB FILE
+
 <img width="1440" alt="Screen Shot 2022-07-24 at 9 39 34 PM" src="https://user-images.githubusercontent.com/78194318/180708081-58381d2d-70b1-4b58-9eb0-ae1be0a76634.png">
+
+## RESULTS
 
 <img width="1440" alt="Screen Shot 2022-07-24 at 10 59 32 PM" src="https://user-images.githubusercontent.com/78194318/180708565-5e8bcb59-e0d7-4fc0-9a9b-2b157f3d29fe.png">
 <img width="1440" alt="Screen Shot 2022-07-24 at 11 00 01 PM" src="https://user-images.githubusercontent.com/78194318/180708576-3649a7f5-8ec1-468a-a5fb-403306c696e0.png">
