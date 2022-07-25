@@ -1,0 +1,1118 @@
+2022-07-24 18:21:32,198 - mmdet - INFO - Environment info:
+------------------------------------------------------------
+sys.platform: linux
+Python: 3.7.0 (default, Sep  2 2018, 01:08:31) [GCC 7.3.0]
+CUDA available: True
+GPU 0: Tesla P100-PCIE-12GB
+CUDA_HOME: /usr/local/cuda-10.1
+NVCC: Cuda compilation tools, release 10.1, V10.1.24
+GCC: gcc (GCC) 7.3.0
+PyTorch: 1.6.0+cu101
+PyTorch compiling details: PyTorch built with:
+  - GCC 7.3
+  - C++ Version: 201402
+  - Intel(R) Math Kernel Library Version 2019.0.5 Product Build 20190808 for Intel(R) 64 architecture applications
+  - Intel(R) MKL-DNN v1.5.0 (Git Hash e2ac1fac44c5078ca927cb9b90e1b3066a0b2ed0)
+  - OpenMP 201511 (a.k.a. OpenMP 4.5)
+  - NNPACK is enabled
+  - CPU capability usage: AVX2
+  - CUDA Runtime 10.1
+  - NVCC architecture flags: -gencode;arch=compute_37,code=sm_37;-gencode;arch=compute_50,code=sm_50;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_70,code=sm_70;-gencode;arch=compute_75,code=sm_75
+  - CuDNN 7.6.3
+  - Magma 2.5.2
+  - Build settings: BLAS=MKL, BUILD_TYPE=Release, CXX_FLAGS= -Wno-deprecated -fvisibility-inlines-hidden -DUSE_PTHREADPOOL -fopenmp -DNDEBUG -DUSE_FBGEMM -DUSE_QNNPACK -DUSE_PYTORCH_QNNPACK -DUSE_XNNPACK -DUSE_VULKAN_WRAPPER -O2 -fPIC -Wno-narrowing -Wall -Wextra -Werror=return-type -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused-result -Wno-unused-local-typedefs -Wno-strict-overflow -Wno-strict-aliasing -Wno-error=deprecated-declarations -Wno-stringop-overflow -Wno-error=pedantic -Wno-error=redundant-decls -Wno-error=old-style-cast -fdiagnostics-color=always -faligned-new -Wno-unused-but-set-variable -Wno-maybe-uninitialized -fno-math-errno -fno-trapping-math -Werror=format -Wno-stringop-overflow, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, PERF_WITH_AVX512=1, USE_CUDA=ON, USE_EXCEPTION_PTR=1, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_MKL=ON, USE_MKLDNN=ON, USE_MPI=OFF, USE_NCCL=ON, USE_NNPACK=ON, USE_OPENMP=ON, USE_STATIC_DISPATCH=OFF, 
+
+TorchVision: 0.7.0+cu101
+OpenCV: 4.6.0
+MMCV: 1.6.0
+MMCV Compiler: GCC 7.3
+MMCV CUDA Compiler: 10.1
+MMDetection: 2.25.0
+MMSegmentation: 0.26.0
+MMDetection3D: 1.0.0rc3+unknown
+spconv2.0: False
+------------------------------------------------------------
+
+2022-07-24 18:21:33,552 - mmdet - INFO - Distributed training: False
+2022-07-24 18:21:34,870 - mmdet - INFO - Config:
+voxel_size = [0.16, 0.16, 4]
+model = dict(
+    type='VoxelNet',
+    voxel_layer=dict(
+        max_num_points=32,
+        point_cloud_range=[0, -39.68, -3, 69.12, 39.68, 1],
+        voxel_size=[0.16, 0.16, 4],
+        max_voxels=(16000, 40000)),
+    voxel_encoder=dict(
+        type='PillarFeatureNet',
+        in_channels=4,
+        feat_channels=[64],
+        with_distance=False,
+        voxel_size=[0.16, 0.16, 4],
+        point_cloud_range=[0, -39.68, -3, 69.12, 39.68, 1]),
+    middle_encoder=dict(
+        type='PointPillarsScatter', in_channels=64, output_shape=[496, 432]),
+    backbone=dict(
+        type='SECOND',
+        in_channels=64,
+        layer_nums=[3, 5, 5],
+        layer_strides=[2, 2, 2],
+        out_channels=[64, 128, 256]),
+    neck=dict(
+        type='SECONDFPN',
+        in_channels=[64, 128, 256],
+        upsample_strides=[1, 2, 4],
+        out_channels=[128, 128, 128]),
+    bbox_head=dict(
+        type='Anchor3DHead',
+        num_classes=3,
+        in_channels=384,
+        feat_channels=384,
+        use_direction_classifier=True,
+        assign_per_class=True,
+        anchor_generator=dict(
+            type='AlignedAnchor3DRangeGenerator',
+            ranges=[[0, -39.68, -0.6, 69.12, 39.68, -0.6],
+                    [0, -39.68, -0.6, 69.12, 39.68, -0.6],
+                    [0, -39.68, -1.78, 69.12, 39.68, -1.78]],
+            sizes=[[0.8, 0.6, 1.73], [1.76, 0.6, 1.73], [3.9, 1.6, 1.56]],
+            rotations=[0, 1.57],
+            reshape_out=False),
+        diff_rad_by_sin=True,
+        bbox_coder=dict(type='DeltaXYZWLHRBBoxCoder'),
+        loss_cls=dict(
+            type='FocalLoss',
+            use_sigmoid=True,
+            gamma=2.0,
+            alpha=0.25,
+            loss_weight=1.0),
+        loss_bbox=dict(
+            type='SmoothL1Loss', beta=0.1111111111111111, loss_weight=2.0),
+        loss_dir=dict(
+            type='CrossEntropyLoss', use_sigmoid=False, loss_weight=0.2)),
+    train_cfg=dict(
+        assigner=[
+            dict(
+                type='MaxIoUAssigner',
+                iou_calculator=dict(type='BboxOverlapsNearest3D'),
+                pos_iou_thr=0.5,
+                neg_iou_thr=0.35,
+                min_pos_iou=0.35,
+                ignore_iof_thr=-1),
+            dict(
+                type='MaxIoUAssigner',
+                iou_calculator=dict(type='BboxOverlapsNearest3D'),
+                pos_iou_thr=0.5,
+                neg_iou_thr=0.35,
+                min_pos_iou=0.35,
+                ignore_iof_thr=-1),
+            dict(
+                type='MaxIoUAssigner',
+                iou_calculator=dict(type='BboxOverlapsNearest3D'),
+                pos_iou_thr=0.6,
+                neg_iou_thr=0.45,
+                min_pos_iou=0.45,
+                ignore_iof_thr=-1)
+        ],
+        allowed_border=0,
+        pos_weight=-1,
+        debug=False),
+    test_cfg=dict(
+        use_rotate_nms=True,
+        nms_across_levels=False,
+        nms_thr=0.01,
+        score_thr=0.1,
+        min_bbox_size=0,
+        nms_pre=100,
+        max_num=50))
+dataset_type = 'KittiDataset'
+data_root = '/data/cmpe249-fa22/kitti/'
+class_names = ['Pedestrian', 'Cyclist', 'Car']
+point_cloud_range = [0, -39.68, -3, 69.12, 39.68, 1]
+input_modality = dict(use_lidar=True, use_camera=False)
+db_sampler = dict(
+    data_root='/data/cmpe249-fa22/kitti/',
+    info_path='/data/cmpe249-fa22/kitti/kitti_dbinfos_train.pkl',
+    rate=1.0,
+    prepare=dict(
+        filter_by_difficulty=[-1],
+        filter_by_min_points=dict(Car=5, Pedestrian=5, Cyclist=5)),
+    classes=['Pedestrian', 'Cyclist', 'Car'],
+    sample_groups=dict(Car=15, Pedestrian=15, Cyclist=15))
+file_client_args = dict(backend='disk')
+train_pipeline = [
+    dict(type='LoadPointsFromFile', coord_type='LIDAR', load_dim=4, use_dim=4),
+    dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True),
+    dict(
+        type='ObjectSample',
+        db_sampler=dict(
+            data_root='/data/cmpe249-fa22/kitti/',
+            info_path='/data/cmpe249-fa22/kitti/kitti_dbinfos_train.pkl',
+            rate=1.0,
+            prepare=dict(
+                filter_by_difficulty=[-1],
+                filter_by_min_points=dict(Car=5, Pedestrian=5, Cyclist=5)),
+            classes=['Pedestrian', 'Cyclist', 'Car'],
+            sample_groups=dict(Car=15, Pedestrian=15, Cyclist=15)),
+        use_ground_plane=True),
+    dict(type='RandomFlip3D', flip_ratio_bev_horizontal=0.5),
+    dict(
+        type='GlobalRotScaleTrans',
+        rot_range=[-0.78539816, 0.78539816],
+        scale_ratio_range=[0.95, 1.05]),
+    dict(
+        type='PointsRangeFilter',
+        point_cloud_range=[0, -39.68, -3, 69.12, 39.68, 1]),
+    dict(
+        type='ObjectRangeFilter',
+        point_cloud_range=[0, -39.68, -3, 69.12, 39.68, 1]),
+    dict(type='PointShuffle'),
+    dict(
+        type='DefaultFormatBundle3D',
+        class_names=['Pedestrian', 'Cyclist', 'Car']),
+    dict(type='Collect3D', keys=['points', 'gt_bboxes_3d', 'gt_labels_3d'])
+]
+test_pipeline = [
+    dict(type='LoadPointsFromFile', coord_type='LIDAR', load_dim=4, use_dim=4),
+    dict(
+        type='MultiScaleFlipAug3D',
+        img_scale=(1333, 800),
+        pts_scale_ratio=1,
+        flip=False,
+        transforms=[
+            dict(
+                type='GlobalRotScaleTrans',
+                rot_range=[0, 0],
+                scale_ratio_range=[1.0, 1.0],
+                translation_std=[0, 0, 0]),
+            dict(type='RandomFlip3D'),
+            dict(
+                type='PointsRangeFilter',
+                point_cloud_range=[0, -39.68, -3, 69.12, 39.68, 1]),
+            dict(
+                type='DefaultFormatBundle3D',
+                class_names=['Pedestrian', 'Cyclist', 'Car'],
+                with_label=False),
+            dict(type='Collect3D', keys=['points'])
+        ])
+]
+eval_pipeline = [
+    dict(
+        type='LoadPointsFromFile',
+        coord_type='LIDAR',
+        load_dim=4,
+        use_dim=4,
+        file_client_args=dict(backend='disk')),
+    dict(
+        type='DefaultFormatBundle3D',
+        class_names=['Pedestrian', 'Cyclist', 'Car'],
+        with_label=False),
+    dict(type='Collect3D', keys=['points'])
+]
+data = dict(
+    samples_per_gpu=6,
+    workers_per_gpu=4,
+    train=dict(
+        type='RepeatDataset',
+        times=2,
+        dataset=dict(
+            type='KittiDataset',
+            data_root='/data/cmpe249-fa22/kitti/',
+            ann_file='/data/cmpe249-fa22/kitti/kitti_infos_train.pkl',
+            split='training',
+            pts_prefix='velodyne_reduced',
+            pipeline=[
+                dict(
+                    type='LoadPointsFromFile',
+                    coord_type='LIDAR',
+                    load_dim=4,
+                    use_dim=4),
+                dict(
+                    type='LoadAnnotations3D',
+                    with_bbox_3d=True,
+                    with_label_3d=True),
+                dict(
+                    type='ObjectSample',
+                    db_sampler=dict(
+                        data_root='/data/cmpe249-fa22/kitti/',
+                        info_path=
+                        '/data/cmpe249-fa22/kitti/kitti_dbinfos_train.pkl',
+                        rate=1.0,
+                        prepare=dict(
+                            filter_by_difficulty=[-1],
+                            filter_by_min_points=dict(
+                                Car=5, Pedestrian=5, Cyclist=5)),
+                        classes=['Pedestrian', 'Cyclist', 'Car'],
+                        sample_groups=dict(Car=15, Pedestrian=15, Cyclist=15)),
+                    use_ground_plane=True),
+                dict(type='RandomFlip3D', flip_ratio_bev_horizontal=0.5),
+                dict(
+                    type='GlobalRotScaleTrans',
+                    rot_range=[-0.78539816, 0.78539816],
+                    scale_ratio_range=[0.95, 1.05]),
+                dict(
+                    type='PointsRangeFilter',
+                    point_cloud_range=[0, -39.68, -3, 69.12, 39.68, 1]),
+                dict(
+                    type='ObjectRangeFilter',
+                    point_cloud_range=[0, -39.68, -3, 69.12, 39.68, 1]),
+                dict(type='PointShuffle'),
+                dict(
+                    type='DefaultFormatBundle3D',
+                    class_names=['Pedestrian', 'Cyclist', 'Car']),
+                dict(
+                    type='Collect3D',
+                    keys=['points', 'gt_bboxes_3d', 'gt_labels_3d'])
+            ],
+            modality=dict(use_lidar=True, use_camera=False),
+            classes=['Pedestrian', 'Cyclist', 'Car'],
+            test_mode=False,
+            box_type_3d='LiDAR')),
+    val=dict(
+        type='KittiDataset',
+        data_root='/data/cmpe249-fa22/kitti/',
+        ann_file='/data/cmpe249-fa22/kitti/kitti_infos_val.pkl',
+        split='training',
+        pts_prefix='velodyne_reduced',
+        pipeline=[
+            dict(
+                type='LoadPointsFromFile',
+                coord_type='LIDAR',
+                load_dim=4,
+                use_dim=4),
+            dict(
+                type='MultiScaleFlipAug3D',
+                img_scale=(1333, 800),
+                pts_scale_ratio=1,
+                flip=False,
+                transforms=[
+                    dict(
+                        type='GlobalRotScaleTrans',
+                        rot_range=[0, 0],
+                        scale_ratio_range=[1.0, 1.0],
+                        translation_std=[0, 0, 0]),
+                    dict(type='RandomFlip3D'),
+                    dict(
+                        type='PointsRangeFilter',
+                        point_cloud_range=[0, -39.68, -3, 69.12, 39.68, 1]),
+                    dict(
+                        type='DefaultFormatBundle3D',
+                        class_names=['Pedestrian', 'Cyclist', 'Car'],
+                        with_label=False),
+                    dict(type='Collect3D', keys=['points'])
+                ])
+        ],
+        modality=dict(use_lidar=True, use_camera=False),
+        classes=['Pedestrian', 'Cyclist', 'Car'],
+        test_mode=True,
+        box_type_3d='LiDAR'),
+    test=dict(
+        type='KittiDataset',
+        data_root='/data/cmpe249-fa22/kitti/',
+        ann_file='/data/cmpe249-fa22/kitti/kitti_infos_val.pkl',
+        split='training',
+        pts_prefix='velodyne_reduced',
+        pipeline=[
+            dict(
+                type='LoadPointsFromFile',
+                coord_type='LIDAR',
+                load_dim=4,
+                use_dim=4),
+            dict(
+                type='MultiScaleFlipAug3D',
+                img_scale=(1333, 800),
+                pts_scale_ratio=1,
+                flip=False,
+                transforms=[
+                    dict(
+                        type='GlobalRotScaleTrans',
+                        rot_range=[0, 0],
+                        scale_ratio_range=[1.0, 1.0],
+                        translation_std=[0, 0, 0]),
+                    dict(type='RandomFlip3D'),
+                    dict(
+                        type='PointsRangeFilter',
+                        point_cloud_range=[0, -39.68, -3, 69.12, 39.68, 1]),
+                    dict(
+                        type='DefaultFormatBundle3D',
+                        class_names=['Pedestrian', 'Cyclist', 'Car'],
+                        with_label=False),
+                    dict(type='Collect3D', keys=['points'])
+                ])
+        ],
+        modality=dict(use_lidar=True, use_camera=False),
+        classes=['Pedestrian', 'Cyclist', 'Car'],
+        test_mode=True,
+        box_type_3d='LiDAR'))
+evaluation = dict(
+    interval=2,
+    pipeline=[
+        dict(
+            type='LoadPointsFromFile',
+            coord_type='LIDAR',
+            load_dim=4,
+            use_dim=4,
+            file_client_args=dict(backend='disk')),
+        dict(
+            type='DefaultFormatBundle3D',
+            class_names=['Pedestrian', 'Cyclist', 'Car'],
+            with_label=False),
+        dict(type='Collect3D', keys=['points'])
+    ])
+lr = 0.001
+optimizer = dict(type='AdamW', lr=0.001, betas=(0.95, 0.99), weight_decay=0.01)
+optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
+lr_config = dict(
+    policy='cyclic',
+    target_ratio=(10, 0.0001),
+    cyclic_times=1,
+    step_ratio_up=0.4)
+momentum_config = dict(
+    policy='cyclic',
+    target_ratio=(0.8947368421052632, 1),
+    cyclic_times=1,
+    step_ratio_up=0.4)
+runner = dict(type='EpochBasedRunner', max_epochs=5)
+checkpoint_config = dict(interval=1)
+log_config = dict(
+    interval=50,
+    hooks=[dict(type='TextLoggerHook'),
+           dict(type='TensorboardLoggerHook')])
+dist_params = dict(backend='nccl')
+log_level = 'INFO'
+work_dir = './work_dirs/hv_pointpillars_secfpn_6x8_160e_kitti-3d-3class'
+load_from = None
+resume_from = None
+workflow = [('train', 1)]
+opencv_num_threads = 0
+mp_start_method = 'fork'
+gpu_ids = [0]
+
+2022-07-24 18:21:34,872 - mmdet - INFO - Set random seed to 0, deterministic: False
+2022-07-24 18:21:34,927 - mmdet - INFO - initialize SECOND with init_cfg {'type': 'Kaiming', 'layer': 'Conv2d'}
+2022-07-24 18:21:34,982 - mmdet - INFO - initialize SECONDFPN with init_cfg [{'type': 'Kaiming', 'layer': 'ConvTranspose2d'}, {'type': 'Constant', 'layer': 'NaiveSyncBatchNorm2d', 'val': 1.0}]
+2022-07-24 18:21:34,991 - mmdet - INFO - initialize Anchor3DHead with init_cfg {'type': 'Normal', 'layer': 'Conv2d', 'std': 0.01, 'override': {'type': 'Normal', 'name': 'conv_cls', 'std': 0.01, 'bias_prob': 0.01}}
+Name of parameter - Initialization information
+
+backbone.blocks.0.0.weight - torch.Size([64, 64, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.blocks.0.1.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.0.1.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.0.3.weight - torch.Size([64, 64, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.blocks.0.4.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.0.4.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.0.6.weight - torch.Size([64, 64, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.blocks.0.7.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.0.7.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.0.9.weight - torch.Size([64, 64, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.blocks.0.10.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.0.10.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.1.0.weight - torch.Size([128, 64, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.blocks.1.1.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.1.1.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.1.3.weight - torch.Size([128, 128, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.blocks.1.4.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.1.4.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.1.6.weight - torch.Size([128, 128, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.blocks.1.7.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.1.7.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.1.9.weight - torch.Size([128, 128, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.blocks.1.10.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.1.10.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.1.12.weight - torch.Size([128, 128, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.blocks.1.13.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.1.13.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.1.15.weight - torch.Size([128, 128, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.blocks.1.16.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.1.16.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.2.0.weight - torch.Size([256, 128, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.blocks.2.1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.2.1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.2.3.weight - torch.Size([256, 256, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.blocks.2.4.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.2.4.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.2.6.weight - torch.Size([256, 256, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.blocks.2.7.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.2.7.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.2.9.weight - torch.Size([256, 256, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.blocks.2.10.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.2.10.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.2.12.weight - torch.Size([256, 256, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.blocks.2.13.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.2.13.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.2.15.weight - torch.Size([256, 256, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.blocks.2.16.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+backbone.blocks.2.16.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+neck.deblocks.0.0.weight - torch.Size([64, 128, 1, 1]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+neck.deblocks.0.1.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+neck.deblocks.0.1.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+neck.deblocks.1.0.weight - torch.Size([128, 128, 2, 2]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+neck.deblocks.1.1.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+neck.deblocks.1.1.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+neck.deblocks.2.0.weight - torch.Size([256, 128, 4, 4]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+neck.deblocks.2.1.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+neck.deblocks.2.1.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+bbox_head.conv_cls.weight - torch.Size([18, 384, 1, 1]): 
+NormalInit: mean=0, std=0.01, bias=-4.59511985013459 
+
+bbox_head.conv_cls.bias - torch.Size([18]): 
+NormalInit: mean=0, std=0.01, bias=-4.59511985013459 
+
+bbox_head.conv_reg.weight - torch.Size([42, 384, 1, 1]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.conv_reg.bias - torch.Size([42]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.conv_dir_cls.weight - torch.Size([12, 384, 1, 1]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.conv_dir_cls.bias - torch.Size([12]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+voxel_encoder.pfn_layers.0.norm.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+voxel_encoder.pfn_layers.0.norm.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+
+voxel_encoder.pfn_layers.0.linear.weight - torch.Size([64, 10]): 
+The value is the same before and after calling `init_weights` of VoxelNet  
+2022-07-24 18:21:34,995 - mmdet - INFO - Model:
+VoxelNet(
+  (backbone): SECOND(
+    (blocks): ModuleList(
+      (0): Sequential(
+        (0): Conv2d(64, 64, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+        (1): BatchNorm2d(64, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+        (2): ReLU(inplace=True)
+        (3): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (4): BatchNorm2d(64, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+        (5): ReLU(inplace=True)
+        (6): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (7): BatchNorm2d(64, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+        (8): ReLU(inplace=True)
+        (9): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (10): BatchNorm2d(64, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+        (11): ReLU(inplace=True)
+      )
+      (1): Sequential(
+        (0): Conv2d(64, 128, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+        (1): BatchNorm2d(128, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+        (2): ReLU(inplace=True)
+        (3): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (4): BatchNorm2d(128, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+        (5): ReLU(inplace=True)
+        (6): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (7): BatchNorm2d(128, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+        (8): ReLU(inplace=True)
+        (9): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (10): BatchNorm2d(128, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+        (11): ReLU(inplace=True)
+        (12): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (13): BatchNorm2d(128, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+        (14): ReLU(inplace=True)
+        (15): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (16): BatchNorm2d(128, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+        (17): ReLU(inplace=True)
+      )
+      (2): Sequential(
+        (0): Conv2d(128, 256, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+        (1): BatchNorm2d(256, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+        (2): ReLU(inplace=True)
+        (3): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (4): BatchNorm2d(256, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+        (5): ReLU(inplace=True)
+        (6): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (7): BatchNorm2d(256, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+        (8): ReLU(inplace=True)
+        (9): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (10): BatchNorm2d(256, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+        (11): ReLU(inplace=True)
+        (12): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (13): BatchNorm2d(256, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+        (14): ReLU(inplace=True)
+        (15): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (16): BatchNorm2d(256, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+        (17): ReLU(inplace=True)
+      )
+    )
+  )
+  init_cfg={'type': 'Kaiming', 'layer': 'Conv2d'}
+  (neck): SECONDFPN(
+    (deblocks): ModuleList(
+      (0): Sequential(
+        (0): ConvTranspose2d(64, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (1): BatchNorm2d(128, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+        (2): ReLU(inplace=True)
+      )
+      (1): Sequential(
+        (0): ConvTranspose2d(128, 128, kernel_size=(2, 2), stride=(2, 2), bias=False)
+        (1): BatchNorm2d(128, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+        (2): ReLU(inplace=True)
+      )
+      (2): Sequential(
+        (0): ConvTranspose2d(256, 128, kernel_size=(4, 4), stride=(4, 4), bias=False)
+        (1): BatchNorm2d(128, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+        (2): ReLU(inplace=True)
+      )
+    )
+  )
+  init_cfg=[{'type': 'Kaiming', 'layer': 'ConvTranspose2d'}, {'type': 'Constant', 'layer': 'NaiveSyncBatchNorm2d', 'val': 1.0}]
+  (bbox_head): Anchor3DHead(
+    (loss_cls): FocalLoss()
+    (loss_bbox): SmoothL1Loss()
+    (loss_dir): CrossEntropyLoss(avg_non_ignore=False)
+    (conv_cls): Conv2d(384, 18, kernel_size=(1, 1), stride=(1, 1))
+    (conv_reg): Conv2d(384, 42, kernel_size=(1, 1), stride=(1, 1))
+    (conv_dir_cls): Conv2d(384, 12, kernel_size=(1, 1), stride=(1, 1))
+  )
+  init_cfg={'type': 'Normal', 'layer': 'Conv2d', 'std': 0.01, 'override': {'type': 'Normal', 'name': 'conv_cls', 'std': 0.01, 'bias_prob': 0.01}}
+  (voxel_layer): Voxelization(voxel_size=[0.16, 0.16, 4], point_cloud_range=[0, -39.68, -3, 69.12, 39.68, 1], max_num_points=32, max_voxels=(16000, 40000), deterministic=True)
+  (voxel_encoder): PillarFeatureNet(
+    (pfn_layers): ModuleList(
+      (0): PFNLayer(
+        (norm): BatchNorm1d(64, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+        (linear): Linear(in_features=10, out_features=64, bias=False)
+      )
+    )
+  )
+  (middle_encoder): PointPillarsScatter()
+)
+2022-07-24 18:21:40,239 - mmdet - INFO - Start running, host: 015214329@g2, work_dir: /home/015214329/mmdetection3d/work_dirs/hv_pointpillars_secfpn_6x8_160e_kitti-3d-3class
+2022-07-24 18:21:40,240 - mmdet - INFO - Hooks will be executed in the following order:
+before_run:
+(VERY_HIGH   ) CyclicLrUpdaterHook                
+(HIGH        ) CyclicMomentumUpdaterHook          
+(NORMAL      ) CheckpointHook                     
+(LOW         ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+(VERY_LOW    ) TensorboardLoggerHook              
+ -------------------- 
+before_train_epoch:
+(VERY_HIGH   ) CyclicLrUpdaterHook                
+(HIGH        ) CyclicMomentumUpdaterHook          
+(LOW         ) IterTimerHook                      
+(LOW         ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+(VERY_LOW    ) TensorboardLoggerHook              
+ -------------------- 
+before_train_iter:
+(VERY_HIGH   ) CyclicLrUpdaterHook                
+(HIGH        ) CyclicMomentumUpdaterHook          
+(LOW         ) IterTimerHook                      
+(LOW         ) EvalHook                           
+ -------------------- 
+after_train_iter:
+(ABOVE_NORMAL) OptimizerHook                      
+(NORMAL      ) CheckpointHook                     
+(LOW         ) IterTimerHook                      
+(LOW         ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+(VERY_LOW    ) TensorboardLoggerHook              
+ -------------------- 
+after_train_epoch:
+(NORMAL      ) CheckpointHook                     
+(LOW         ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+(VERY_LOW    ) TensorboardLoggerHook              
+ -------------------- 
+before_val_epoch:
+(LOW         ) IterTimerHook                      
+(VERY_LOW    ) TextLoggerHook                     
+(VERY_LOW    ) TensorboardLoggerHook              
+ -------------------- 
+before_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_epoch:
+(VERY_LOW    ) TextLoggerHook                     
+(VERY_LOW    ) TensorboardLoggerHook              
+ -------------------- 
+after_run:
+(VERY_LOW    ) TextLoggerHook                     
+(VERY_LOW    ) TensorboardLoggerHook              
+ -------------------- 
+2022-07-24 18:21:40,241 - mmdet - INFO - workflow: [('train', 1)], max: 5 epochs
+2022-07-24 18:21:40,241 - mmdet - INFO - Checkpoints will be saved to /home/015214329/mmdetection3d/work_dirs/hv_pointpillars_secfpn_6x8_160e_kitti-3d-3class by HardDiskBackend.
+2022-07-24 18:22:38,723 - mmdet - INFO - Epoch [1][50/1995]	lr: 1.003e-03, eta: 3:04:44, time: 1.117, data_time: 0.414, memory: 5668, loss_cls: 0.7251, loss_bbox: 2.5685, loss_dir: 0.1411, loss: 3.4348, grad_norm: 9.6818
+2022-07-24 18:23:13,167 - mmdet - INFO - Epoch [1][100/1995]	lr: 1.014e-03, eta: 2:28:35, time: 0.689, data_time: 0.010, memory: 5679, loss_cls: 0.5287, loss_bbox: 2.1135, loss_dir: 0.1389, loss: 2.7810, grad_norm: 6.9974
+2022-07-24 18:23:47,381 - mmdet - INFO - Epoch [1][150/1995]	lr: 1.031e-03, eta: 2:15:54, time: 0.684, data_time: 0.010, memory: 5725, loss_cls: 0.4518, loss_bbox: 1.9652, loss_dir: 0.1381, loss: 2.5551, grad_norm: 6.0429
+2022-07-24 18:24:21,924 - mmdet - INFO - Epoch [1][200/1995]	lr: 1.055e-03, eta: 2:09:33, time: 0.691, data_time: 0.010, memory: 5725, loss_cls: 0.4264, loss_bbox: 1.8906, loss_dir: 0.1373, loss: 2.4543, grad_norm: 5.8076
+2022-07-24 18:24:56,408 - mmdet - INFO - Epoch [1][250/1995]	lr: 1.086e-03, eta: 2:05:28, time: 0.690, data_time: 0.010, memory: 5725, loss_cls: 0.4002, loss_bbox: 1.7300, loss_dir: 0.1367, loss: 2.2669, grad_norm: 6.8162
+2022-07-24 18:25:30,997 - mmdet - INFO - Epoch [1][300/1995]	lr: 1.124e-03, eta: 2:02:36, time: 0.692, data_time: 0.010, memory: 5725, loss_cls: 0.4076, loss_bbox: 1.7986, loss_dir: 0.1370, loss: 2.3432, grad_norm: 5.8531
+2022-07-24 18:26:05,260 - mmdet - INFO - Epoch [1][350/1995]	lr: 1.169e-03, eta: 2:00:15, time: 0.685, data_time: 0.010, memory: 5725, loss_cls: 0.3899, loss_bbox: 1.7200, loss_dir: 0.1365, loss: 2.2464, grad_norm: 5.5294
+2022-07-24 18:26:39,643 - mmdet - INFO - Epoch [1][400/1995]	lr: 1.220e-03, eta: 1:58:23, time: 0.688, data_time: 0.010, memory: 5725, loss_cls: 0.3863, loss_bbox: 1.6704, loss_dir: 0.1385, loss: 2.1952, grad_norm: 5.3040
+2022-07-24 18:27:13,568 - mmdet - INFO - Epoch [1][450/1995]	lr: 1.278e-03, eta: 1:56:39, time: 0.679, data_time: 0.010, memory: 5725, loss_cls: 0.3696, loss_bbox: 1.6594, loss_dir: 0.1363, loss: 2.1653, grad_norm: 5.1276
+2022-07-24 18:27:48,041 - mmdet - INFO - Epoch [1][500/1995]	lr: 1.343e-03, eta: 1:55:19, time: 0.689, data_time: 0.010, memory: 5725, loss_cls: 0.3619, loss_bbox: 1.5746, loss_dir: 0.1372, loss: 2.0738, grad_norm: 5.5497
+2022-07-24 18:28:22,302 - mmdet - INFO - Epoch [1][550/1995]	lr: 1.414e-03, eta: 1:54:04, time: 0.685, data_time: 0.010, memory: 5725, loss_cls: 0.3606, loss_bbox: 1.5759, loss_dir: 0.1370, loss: 2.0734, grad_norm: 4.8970
+2022-07-24 18:28:56,485 - mmdet - INFO - Epoch [1][600/1995]	lr: 1.491e-03, eta: 1:52:55, time: 0.684, data_time: 0.010, memory: 5725, loss_cls: 0.3508, loss_bbox: 1.6146, loss_dir: 0.1367, loss: 2.1021, grad_norm: 4.7558
+2022-07-24 18:29:30,849 - mmdet - INFO - Epoch [1][650/1995]	lr: 1.575e-03, eta: 1:51:53, time: 0.687, data_time: 0.010, memory: 5725, loss_cls: 0.3410, loss_bbox: 1.5735, loss_dir: 0.1365, loss: 2.0511, grad_norm: 4.4625
+2022-07-24 18:30:05,311 - mmdet - INFO - Epoch [1][700/1995]	lr: 1.665e-03, eta: 1:50:57, time: 0.689, data_time: 0.011, memory: 5725, loss_cls: 0.3404, loss_bbox: 1.5878, loss_dir: 0.1363, loss: 2.0645, grad_norm: 4.2944
+2022-07-24 18:30:39,866 - mmdet - INFO - Epoch [1][750/1995]	lr: 1.760e-03, eta: 1:50:04, time: 0.691, data_time: 0.013, memory: 5725, loss_cls: 0.3406, loss_bbox: 1.5164, loss_dir: 0.1364, loss: 1.9934, grad_norm: 4.3351
+2022-07-24 18:31:14,483 - mmdet - INFO - Epoch [1][800/1995]	lr: 1.862e-03, eta: 1:49:15, time: 0.692, data_time: 0.012, memory: 5725, loss_cls: 0.3393, loss_bbox: 1.5568, loss_dir: 0.1357, loss: 2.0319, grad_norm: 3.8605
+2022-07-24 18:31:49,166 - mmdet - INFO - Epoch [1][850/1995]	lr: 1.969e-03, eta: 1:48:28, time: 0.694, data_time: 0.012, memory: 5725, loss_cls: 0.3366, loss_bbox: 1.5981, loss_dir: 0.1369, loss: 2.0716, grad_norm: 4.2116
+2022-07-24 18:32:24,076 - mmdet - INFO - Epoch [1][900/1995]	lr: 2.081e-03, eta: 1:47:45, time: 0.698, data_time: 0.012, memory: 5725, loss_cls: 0.3271, loss_bbox: 1.4951, loss_dir: 0.1357, loss: 1.9579, grad_norm: 3.6414
+2022-07-24 18:32:58,242 - mmdet - INFO - Epoch [1][950/1995]	lr: 2.199e-03, eta: 1:46:55, time: 0.683, data_time: 0.011, memory: 5725, loss_cls: 0.3294, loss_bbox: 1.5736, loss_dir: 0.1350, loss: 2.0380, grad_norm: 3.8830
+2022-07-24 18:33:32,536 - mmdet - INFO - Exp name: hv_pointpillars_secfpn_6x8_160e_kitti-3d-3class.py
+2022-07-24 18:33:32,536 - mmdet - INFO - Epoch [1][1000/1995]	lr: 2.322e-03, eta: 1:46:09, time: 0.686, data_time: 0.012, memory: 5725, loss_cls: 0.3261, loss_bbox: 1.5181, loss_dir: 0.1366, loss: 1.9807, grad_norm: 3.4624
+2022-07-24 18:34:07,439 - mmdet - INFO - Epoch [1][1050/1995]	lr: 2.450e-03, eta: 1:45:28, time: 0.698, data_time: 0.012, memory: 5725, loss_cls: 0.3257, loss_bbox: 1.5582, loss_dir: 0.1353, loss: 2.0192, grad_norm: 3.6207
+2022-07-24 18:34:42,036 - mmdet - INFO - Epoch [1][1100/1995]	lr: 2.582e-03, eta: 1:44:46, time: 0.692, data_time: 0.013, memory: 5725, loss_cls: 0.3311, loss_bbox: 1.5249, loss_dir: 0.1353, loss: 1.9913, grad_norm: 3.4204
+2022-07-24 18:35:16,359 - mmdet - INFO - Epoch [1][1150/1995]	lr: 2.719e-03, eta: 1:44:02, time: 0.686, data_time: 0.012, memory: 5725, loss_cls: 0.3202, loss_bbox: 1.5303, loss_dir: 0.1361, loss: 1.9867, grad_norm: 3.2968
+2022-07-24 18:35:51,054 - mmdet - INFO - Epoch [1][1200/1995]	lr: 2.861e-03, eta: 1:43:22, time: 0.694, data_time: 0.011, memory: 5725, loss_cls: 0.3273, loss_bbox: 1.5529, loss_dir: 0.1359, loss: 2.0160, grad_norm: 3.1016
+2022-07-24 18:36:25,575 - mmdet - INFO - Epoch [1][1250/1995]	lr: 3.006e-03, eta: 1:42:41, time: 0.690, data_time: 0.012, memory: 5725, loss_cls: 0.3199, loss_bbox: 1.4915, loss_dir: 0.1367, loss: 1.9480, grad_norm: 3.0049
+2022-07-24 18:36:59,695 - mmdet - INFO - Epoch [1][1300/1995]	lr: 3.156e-03, eta: 1:41:57, time: 0.682, data_time: 0.012, memory: 5725, loss_cls: 0.3221, loss_bbox: 1.5400, loss_dir: 0.1356, loss: 1.9977, grad_norm: 2.7513
+2022-07-24 18:37:34,753 - mmdet - INFO - Epoch [1][1350/1995]	lr: 3.309e-03, eta: 1:41:21, time: 0.701, data_time: 0.010, memory: 5725, loss_cls: 0.3207, loss_bbox: 1.5200, loss_dir: 0.1359, loss: 1.9766, grad_norm: 2.6414
+2022-07-24 18:38:09,364 - mmdet - INFO - Epoch [1][1400/1995]	lr: 3.465e-03, eta: 1:40:42, time: 0.692, data_time: 0.010, memory: 5725, loss_cls: 0.3056, loss_bbox: 1.4653, loss_dir: 0.1359, loss: 1.9068, grad_norm: 2.7186
+2022-07-24 18:38:43,896 - mmdet - INFO - Epoch [1][1450/1995]	lr: 3.624e-03, eta: 1:40:02, time: 0.691, data_time: 0.010, memory: 5725, loss_cls: 0.3138, loss_bbox: 1.4483, loss_dir: 0.1359, loss: 1.8980, grad_norm: 2.5403
+2022-07-24 18:39:19,145 - mmdet - INFO - Epoch [1][1500/1995]	lr: 3.787e-03, eta: 1:39:27, time: 0.705, data_time: 0.010, memory: 5725, loss_cls: 0.3156, loss_bbox: 1.5257, loss_dir: 0.1352, loss: 1.9766, grad_norm: 2.6094
+2022-07-24 18:39:53,691 - mmdet - INFO - Epoch [1][1550/1995]	lr: 3.952e-03, eta: 1:38:49, time: 0.691, data_time: 0.010, memory: 5725, loss_cls: 0.3241, loss_bbox: 1.5037, loss_dir: 0.1359, loss: 1.9637, grad_norm: 2.3829
+2022-07-24 18:40:28,507 - mmdet - INFO - Epoch [1][1600/1995]	lr: 4.120e-03, eta: 1:38:11, time: 0.696, data_time: 0.010, memory: 5725, loss_cls: 0.3036, loss_bbox: 1.4772, loss_dir: 0.1351, loss: 1.9159, grad_norm: 2.3336
+2022-07-24 18:41:02,949 - mmdet - INFO - Epoch [1][1650/1995]	lr: 4.289e-03, eta: 1:37:33, time: 0.689, data_time: 0.010, memory: 5725, loss_cls: 0.3301, loss_bbox: 1.5630, loss_dir: 0.1357, loss: 2.0288, grad_norm: 2.3199
+2022-07-24 18:41:37,202 - mmdet - INFO - Epoch [1][1700/1995]	lr: 4.461e-03, eta: 1:36:53, time: 0.685, data_time: 0.010, memory: 5725, loss_cls: 0.3154, loss_bbox: 1.5091, loss_dir: 0.1352, loss: 1.9598, grad_norm: 2.1405
+2022-07-24 18:42:11,319 - mmdet - INFO - Epoch [1][1750/1995]	lr: 4.634e-03, eta: 1:36:13, time: 0.682, data_time: 0.010, memory: 5733, loss_cls: 0.3073, loss_bbox: 1.4642, loss_dir: 0.1353, loss: 1.9069, grad_norm: 2.0506
+2022-07-24 18:42:45,893 - mmdet - INFO - Epoch [1][1800/1995]	lr: 4.808e-03, eta: 1:35:36, time: 0.691, data_time: 0.010, memory: 5733, loss_cls: 0.3037, loss_bbox: 1.4725, loss_dir: 0.1355, loss: 1.9118, grad_norm: 1.8682
+2022-07-24 18:43:20,820 - mmdet - INFO - Epoch [1][1850/1995]	lr: 4.984e-03, eta: 1:35:00, time: 0.699, data_time: 0.010, memory: 5733, loss_cls: 0.2939, loss_bbox: 1.4530, loss_dir: 0.1356, loss: 1.8826, grad_norm: 2.1221
+2022-07-24 18:43:55,009 - mmdet - INFO - Epoch [1][1900/1995]	lr: 5.160e-03, eta: 1:34:21, time: 0.684, data_time: 0.010, memory: 5763, loss_cls: 0.3055, loss_bbox: 1.4773, loss_dir: 0.1352, loss: 1.9179, grad_norm: 1.8555
+2022-07-24 18:44:30,136 - mmdet - INFO - Epoch [1][1950/1995]	lr: 5.337e-03, eta: 1:33:46, time: 0.703, data_time: 0.010, memory: 5763, loss_cls: 0.2995, loss_bbox: 1.4399, loss_dir: 0.1352, loss: 1.8746, grad_norm: 1.8271
+2022-07-24 18:45:00,407 - mmdet - INFO - Saving checkpoint at 1 epochs
+2022-07-24 18:45:56,409 - mmdet - INFO - Epoch [2][50/1995]	lr: 5.674e-03, eta: 1:31:57, time: 1.114, data_time: 0.418, memory: 5763, loss_cls: 0.3111, loss_bbox: 1.4617, loss_dir: 0.1356, loss: 1.9084, grad_norm: 1.8366
+2022-07-24 18:46:30,904 - mmdet - INFO - Epoch [2][100/1995]	lr: 5.850e-03, eta: 1:31:21, time: 0.690, data_time: 0.010, memory: 5763, loss_cls: 0.3032, loss_bbox: 1.4337, loss_dir: 0.1354, loss: 1.8723, grad_norm: 1.6189
+2022-07-24 18:47:05,353 - mmdet - INFO - Epoch [2][150/1995]	lr: 6.027e-03, eta: 1:30:45, time: 0.689, data_time: 0.010, memory: 5764, loss_cls: 0.2960, loss_bbox: 1.4070, loss_dir: 0.1344, loss: 1.8373, grad_norm: 1.7521
+2022-07-24 18:47:39,947 - mmdet - INFO - Epoch [2][200/1995]	lr: 6.202e-03, eta: 1:30:10, time: 0.692, data_time: 0.010, memory: 5764, loss_cls: 0.2989, loss_bbox: 1.4368, loss_dir: 0.1355, loss: 1.8711, grad_norm: 1.5953
+2022-07-24 18:48:14,643 - mmdet - INFO - Epoch [2][250/1995]	lr: 6.377e-03, eta: 1:29:35, time: 0.694, data_time: 0.010, memory: 5764, loss_cls: 0.2948, loss_bbox: 1.4176, loss_dir: 0.1354, loss: 1.8478, grad_norm: 1.6093
+2022-07-24 18:48:48,777 - mmdet - INFO - Epoch [2][300/1995]	lr: 6.550e-03, eta: 1:28:58, time: 0.683, data_time: 0.010, memory: 5764, loss_cls: 0.3014, loss_bbox: 1.4149, loss_dir: 0.1350, loss: 1.8513, grad_norm: 1.6163
+2022-07-24 18:49:23,278 - mmdet - INFO - Epoch [2][350/1995]	lr: 6.721e-03, eta: 1:28:22, time: 0.690, data_time: 0.010, memory: 5764, loss_cls: 0.2920, loss_bbox: 1.4789, loss_dir: 0.1348, loss: 1.9057, grad_norm: 1.5569
+2022-07-24 18:49:58,189 - mmdet - INFO - Epoch [2][400/1995]	lr: 6.891e-03, eta: 1:27:48, time: 0.698, data_time: 0.010, memory: 5764, loss_cls: 0.2834, loss_bbox: 1.4002, loss_dir: 0.1363, loss: 1.8198, grad_norm: 1.4645
+2022-07-24 18:50:33,075 - mmdet - INFO - Epoch [2][450/1995]	lr: 7.058e-03, eta: 1:27:14, time: 0.698, data_time: 0.010, memory: 5764, loss_cls: 0.2893, loss_bbox: 1.4044, loss_dir: 0.1346, loss: 1.8283, grad_norm: 1.5972
+2022-07-24 18:51:07,694 - mmdet - INFO - Epoch [2][500/1995]	lr: 7.223e-03, eta: 1:26:39, time: 0.692, data_time: 0.010, memory: 5764, loss_cls: 0.2803, loss_bbox: 1.4230, loss_dir: 0.1339, loss: 1.8372, grad_norm: 1.3410
+2022-07-24 18:51:42,242 - mmdet - INFO - Epoch [2][550/1995]	lr: 7.385e-03, eta: 1:26:03, time: 0.691, data_time: 0.010, memory: 5764, loss_cls: 0.2843, loss_bbox: 1.4176, loss_dir: 0.1352, loss: 1.8371, grad_norm: 1.5211
+2022-07-24 18:52:16,785 - mmdet - INFO - Epoch [2][600/1995]	lr: 7.545e-03, eta: 1:25:28, time: 0.691, data_time: 0.010, memory: 5764, loss_cls: 0.2824, loss_bbox: 1.4215, loss_dir: 0.1353, loss: 1.8392, grad_norm: 1.4250
+2022-07-24 18:52:51,105 - mmdet - INFO - Epoch [2][650/1995]	lr: 7.701e-03, eta: 1:24:52, time: 0.686, data_time: 0.010, memory: 5764, loss_cls: 0.2882, loss_bbox: 1.4253, loss_dir: 0.1348, loss: 1.8483, grad_norm: 1.2744
+2022-07-24 18:53:25,602 - mmdet - INFO - Epoch [2][700/1995]	lr: 7.854e-03, eta: 1:24:17, time: 0.690, data_time: 0.010, memory: 5764, loss_cls: 0.2853, loss_bbox: 1.3737, loss_dir: 0.1353, loss: 1.7942, grad_norm: 1.3216
+2022-07-24 18:54:00,217 - mmdet - INFO - Epoch [2][750/1995]	lr: 8.003e-03, eta: 1:23:42, time: 0.692, data_time: 0.010, memory: 5764, loss_cls: 0.2877, loss_bbox: 1.4230, loss_dir: 0.1347, loss: 1.8454, grad_norm: 1.2884
+2022-07-24 18:54:35,003 - mmdet - INFO - Epoch [2][800/1995]	lr: 8.148e-03, eta: 1:23:07, time: 0.696, data_time: 0.010, memory: 5764, loss_cls: 0.2862, loss_bbox: 1.3957, loss_dir: 0.1357, loss: 1.8175, grad_norm: 1.2684
+2022-07-24 18:55:09,764 - mmdet - INFO - Epoch [2][850/1995]	lr: 8.289e-03, eta: 1:22:32, time: 0.695, data_time: 0.010, memory: 5764, loss_cls: 0.2831, loss_bbox: 1.3391, loss_dir: 0.1355, loss: 1.7577, grad_norm: 1.2695
+2022-07-24 18:55:44,234 - mmdet - INFO - Epoch [2][900/1995]	lr: 8.426e-03, eta: 1:21:57, time: 0.689, data_time: 0.010, memory: 5764, loss_cls: 0.2877, loss_bbox: 1.4067, loss_dir: 0.1342, loss: 1.8286, grad_norm: 1.3557
+2022-07-24 18:56:19,010 - mmdet - INFO - Epoch [2][950/1995]	lr: 8.558e-03, eta: 1:21:22, time: 0.696, data_time: 0.010, memory: 5764, loss_cls: 0.2887, loss_bbox: 1.3504, loss_dir: 0.1344, loss: 1.7735, grad_norm: 1.2890
+2022-07-24 18:56:53,529 - mmdet - INFO - Epoch [2][1000/1995]	lr: 8.686e-03, eta: 1:20:47, time: 0.690, data_time: 0.010, memory: 5764, loss_cls: 0.2791, loss_bbox: 1.3761, loss_dir: 0.1352, loss: 1.7904, grad_norm: 1.2358
+2022-07-24 18:57:27,687 - mmdet - INFO - Epoch [2][1050/1995]	lr: 8.808e-03, eta: 1:20:11, time: 0.683, data_time: 0.010, memory: 5764, loss_cls: 0.2772, loss_bbox: 1.3477, loss_dir: 0.1353, loss: 1.7601, grad_norm: 1.2828
+2022-07-24 18:58:02,495 - mmdet - INFO - Epoch [2][1100/1995]	lr: 8.926e-03, eta: 1:19:37, time: 0.696, data_time: 0.010, memory: 5764, loss_cls: 0.2779, loss_bbox: 1.3247, loss_dir: 0.1348, loss: 1.7374, grad_norm: 1.3074
+2022-07-24 18:58:37,448 - mmdet - INFO - Epoch [2][1150/1995]	lr: 9.038e-03, eta: 1:19:02, time: 0.699, data_time: 0.010, memory: 5764, loss_cls: 0.2869, loss_bbox: 1.3441, loss_dir: 0.1349, loss: 1.7659, grad_norm: 1.1755
+2022-07-24 18:59:11,622 - mmdet - INFO - Epoch [2][1200/1995]	lr: 9.145e-03, eta: 1:18:27, time: 0.683, data_time: 0.010, memory: 5764, loss_cls: 0.2819, loss_bbox: 1.3006, loss_dir: 0.1348, loss: 1.7173, grad_norm: 1.2013
+2022-07-24 18:59:46,636 - mmdet - INFO - Epoch [2][1250/1995]	lr: 9.246e-03, eta: 1:17:52, time: 0.700, data_time: 0.010, memory: 5764, loss_cls: 0.2754, loss_bbox: 1.2954, loss_dir: 0.1361, loss: 1.7069, grad_norm: 1.2225
+2022-07-24 19:00:21,036 - mmdet - INFO - Epoch [2][1300/1995]	lr: 9.341e-03, eta: 1:17:17, time: 0.688, data_time: 0.010, memory: 5764, loss_cls: 0.2747, loss_bbox: 1.3232, loss_dir: 0.1353, loss: 1.7332, grad_norm: 1.1088
+2022-07-24 19:00:56,062 - mmdet - INFO - Epoch [2][1350/1995]	lr: 9.430e-03, eta: 1:16:43, time: 0.701, data_time: 0.010, memory: 5764, loss_cls: 0.2799, loss_bbox: 1.3147, loss_dir: 0.1359, loss: 1.7304, grad_norm: 1.2211
+2022-07-24 19:01:31,022 - mmdet - INFO - Epoch [2][1400/1995]	lr: 9.514e-03, eta: 1:16:09, time: 0.699, data_time: 0.010, memory: 5764, loss_cls: 0.2718, loss_bbox: 1.2755, loss_dir: 0.1347, loss: 1.6820, grad_norm: 1.2357
+2022-07-24 19:02:05,861 - mmdet - INFO - Epoch [2][1450/1995]	lr: 9.591e-03, eta: 1:15:34, time: 0.697, data_time: 0.010, memory: 5764, loss_cls: 0.2727, loss_bbox: 1.3509, loss_dir: 0.1345, loss: 1.7581, grad_norm: 1.1095
+2022-07-24 19:02:40,676 - mmdet - INFO - Epoch [2][1500/1995]	lr: 9.661e-03, eta: 1:15:00, time: 0.696, data_time: 0.010, memory: 5764, loss_cls: 0.2766, loss_bbox: 1.3504, loss_dir: 0.1337, loss: 1.7607, grad_norm: 1.0590
+2022-07-24 19:03:15,211 - mmdet - INFO - Epoch [2][1550/1995]	lr: 9.725e-03, eta: 1:14:25, time: 0.691, data_time: 0.010, memory: 5764, loss_cls: 0.2674, loss_bbox: 1.3407, loss_dir: 0.1355, loss: 1.7436, grad_norm: 1.0944
+2022-07-24 19:03:50,306 - mmdet - INFO - Epoch [2][1600/1995]	lr: 9.783e-03, eta: 1:13:51, time: 0.702, data_time: 0.010, memory: 5764, loss_cls: 0.2702, loss_bbox: 1.3196, loss_dir: 0.1337, loss: 1.7235, grad_norm: 1.1445
+2022-07-24 19:04:24,974 - mmdet - INFO - Epoch [2][1650/1995]	lr: 9.834e-03, eta: 1:13:16, time: 0.693, data_time: 0.010, memory: 5764, loss_cls: 0.2709, loss_bbox: 1.3164, loss_dir: 0.1337, loss: 1.7210, grad_norm: 1.1236
+2022-07-24 19:04:59,589 - mmdet - INFO - Epoch [2][1700/1995]	lr: 9.878e-03, eta: 1:12:41, time: 0.692, data_time: 0.010, memory: 5764, loss_cls: 0.2678, loss_bbox: 1.2283, loss_dir: 0.1348, loss: 1.6309, grad_norm: 1.0859
+2022-07-24 19:05:34,252 - mmdet - INFO - Epoch [2][1750/1995]	lr: 9.916e-03, eta: 1:12:06, time: 0.693, data_time: 0.010, memory: 5764, loss_cls: 0.2741, loss_bbox: 1.2741, loss_dir: 0.1348, loss: 1.6830, grad_norm: 1.1375
+2022-07-24 19:06:08,990 - mmdet - INFO - Epoch [2][1800/1995]	lr: 9.947e-03, eta: 1:11:31, time: 0.695, data_time: 0.010, memory: 5764, loss_cls: 0.2643, loss_bbox: 1.2528, loss_dir: 0.1346, loss: 1.6518, grad_norm: 1.1564
+2022-07-24 19:06:43,456 - mmdet - INFO - Epoch [2][1850/1995]	lr: 9.970e-03, eta: 1:10:56, time: 0.689, data_time: 0.010, memory: 5764, loss_cls: 0.2607, loss_bbox: 1.3162, loss_dir: 0.1345, loss: 1.7114, grad_norm: 1.0651
+2022-07-24 19:07:18,237 - mmdet - INFO - Epoch [2][1900/1995]	lr: 9.987e-03, eta: 1:10:22, time: 0.696, data_time: 0.010, memory: 5764, loss_cls: 0.2679, loss_bbox: 1.3094, loss_dir: 0.1346, loss: 1.7119, grad_norm: 1.1152
+2022-07-24 19:07:52,724 - mmdet - INFO - Epoch [2][1950/1995]	lr: 9.997e-03, eta: 1:09:47, time: 0.690, data_time: 0.010, memory: 5764, loss_cls: 0.2578, loss_bbox: 1.3001, loss_dir: 0.1353, loss: 1.6931, grad_norm: 1.1381
+2022-07-24 19:08:23,101 - mmdet - INFO - Saving checkpoint at 2 epochs
+2022-07-24 19:09:57,828 - mmdet - INFO - 
+
+----------- AP11 Results ------------
+
+Pedestrian AP11@0.50, 0.50, 0.50:
+bbox AP11:41.4818, 36.8487, 34.7285
+bev  AP11:36.5323, 32.1961, 28.2052
+3d   AP11:23.7491, 21.6948, 19.0751
+aos  AP11:20.63, 19.22, 18.00
+Pedestrian AP11@0.50, 0.25, 0.25:
+bbox AP11:41.4818, 36.8487, 34.7285
+bev  AP11:47.1808, 42.1807, 38.4943
+3d   AP11:47.1808, 42.1807, 38.4943
+aos  AP11:20.63, 19.22, 18.00
+Cyclist AP11@0.50, 0.50, 0.50:
+bbox AP11:48.4638, 41.1456, 39.0716
+bev  AP11:41.5068, 33.1791, 31.1665
+3d   AP11:40.3595, 30.5403, 28.3579
+aos  AP11:23.05, 19.48, 18.49
+Cyclist AP11@0.50, 0.25, 0.25:
+bbox AP11:48.4638, 41.1456, 39.0716
+bev  AP11:48.4342, 40.6448, 38.8795
+3d   AP11:48.4342, 40.5583, 38.8672
+aos  AP11:23.05, 19.48, 18.49
+Car AP11@0.70, 0.70, 0.70:
+bbox AP11:74.7878, 60.7794, 55.5837
+bev  AP11:60.5400, 53.7086, 48.9423
+3d   AP11:19.3311, 18.2952, 16.6955
+aos  AP11:60.55, 48.65, 44.32
+Car AP11@0.70, 0.50, 0.50:
+bbox AP11:74.7878, 60.7794, 55.5837
+bev  AP11:89.0572, 78.7811, 73.5040
+3d   AP11:85.4031, 72.1462, 66.4870
+aos  AP11:60.55, 48.65, 44.32
+
+Overall AP11@easy, moderate, hard:
+bbox AP11:54.9111, 46.2579, 43.1279
+bev  AP11:46.1930, 39.6946, 36.1046
+3d   AP11:27.8132, 23.5101, 21.3762
+aos  AP11:34.74, 29.11, 26.94
+
+----------- AP40 Results ------------
+
+Pedestrian AP40@0.50, 0.50, 0.50:
+bbox AP40:40.5100, 35.9236, 32.6138
+bev  AP40:35.1746, 30.4643, 27.1163
+3d   AP40:22.4326, 19.5547, 17.4806
+aos  AP40:20.09, 18.65, 16.90
+Pedestrian AP40@0.50, 0.25, 0.25:
+bbox AP40:40.5100, 35.9236, 32.6138
+bev  AP40:46.1818, 41.1199, 37.1930
+3d   AP40:46.1818, 41.1199, 37.1930
+aos  AP40:20.09, 18.65, 16.90
+Cyclist AP40@0.50, 0.50, 0.50:
+bbox AP40:46.7827, 38.4820, 36.2098
+bev  AP40:41.7096, 32.2896, 29.8930
+3d   AP40:40.2181, 29.0333, 26.7073
+aos  AP40:22.69, 18.64, 17.55
+Cyclist AP40@0.50, 0.25, 0.25:
+bbox AP40:46.7827, 38.4820, 36.2098
+bev  AP40:46.9293, 38.1454, 35.5345
+3d   AP40:46.9293, 37.9301, 35.5181
+aos  AP40:22.69, 18.64, 17.55
+Car AP40@0.70, 0.70, 0.70:
+bbox AP40:74.5428, 60.7348, 53.8297
+bev  AP40:59.8057, 53.1892, 46.9819
+3d   AP40:17.3566, 15.8543, 14.2301
+aos  AP40:58.71, 46.92, 41.39
+Car AP40@0.70, 0.50, 0.50:
+bbox AP40:74.5428, 60.7348, 53.8297
+bev  AP40:91.6735, 81.7542, 74.1674
+3d   AP40:87.1764, 73.2311, 65.6787
+aos  AP40:58.71, 46.92, 41.39
+
+Overall AP40@easy, moderate, hard:
+bbox AP40:53.9452, 45.0468, 40.8844
+bev  AP40:45.5633, 38.6477, 34.6637
+3d   AP40:26.6691, 21.4808, 19.4727
+aos  AP40:33.83, 28.07, 25.28
+
+2022-07-24 19:09:57,837 - mmdet - INFO - Exp name: hv_pointpillars_secfpn_6x8_160e_kitti-3d-3class.py
+2022-07-24 19:09:57,837 - mmdet - INFO - Epoch(val) [2][1497]	KITTI/Pedestrian_3D_AP11_easy_strict: 23.7491, KITTI/Pedestrian_BEV_AP11_easy_strict: 36.5323, KITTI/Pedestrian_2D_AP11_easy_strict: 41.4818, KITTI/Pedestrian_3D_AP11_moderate_strict: 21.6948, KITTI/Pedestrian_BEV_AP11_moderate_strict: 32.1961, KITTI/Pedestrian_2D_AP11_moderate_strict: 36.8487, KITTI/Pedestrian_3D_AP11_hard_strict: 19.0751, KITTI/Pedestrian_BEV_AP11_hard_strict: 28.2052, KITTI/Pedestrian_2D_AP11_hard_strict: 34.7285, KITTI/Pedestrian_3D_AP11_easy_loose: 47.1808, KITTI/Pedestrian_BEV_AP11_easy_loose: 47.1808, KITTI/Pedestrian_2D_AP11_easy_loose: 41.4818, KITTI/Pedestrian_3D_AP11_moderate_loose: 42.1807, KITTI/Pedestrian_BEV_AP11_moderate_loose: 42.1807, KITTI/Pedestrian_2D_AP11_moderate_loose: 36.8487, KITTI/Pedestrian_3D_AP11_hard_loose: 38.4943, KITTI/Pedestrian_BEV_AP11_hard_loose: 38.4943, KITTI/Pedestrian_2D_AP11_hard_loose: 34.7285, KITTI/Cyclist_3D_AP11_easy_strict: 40.3595, KITTI/Cyclist_BEV_AP11_easy_strict: 41.5068, KITTI/Cyclist_2D_AP11_easy_strict: 48.4638, KITTI/Cyclist_3D_AP11_moderate_strict: 30.5403, KITTI/Cyclist_BEV_AP11_moderate_strict: 33.1791, KITTI/Cyclist_2D_AP11_moderate_strict: 41.1456, KITTI/Cyclist_3D_AP11_hard_strict: 28.3579, KITTI/Cyclist_BEV_AP11_hard_strict: 31.1665, KITTI/Cyclist_2D_AP11_hard_strict: 39.0716, KITTI/Cyclist_3D_AP11_easy_loose: 48.4342, KITTI/Cyclist_BEV_AP11_easy_loose: 48.4342, KITTI/Cyclist_2D_AP11_easy_loose: 48.4638, KITTI/Cyclist_3D_AP11_moderate_loose: 40.5583, KITTI/Cyclist_BEV_AP11_moderate_loose: 40.6448, KITTI/Cyclist_2D_AP11_moderate_loose: 41.1456, KITTI/Cyclist_3D_AP11_hard_loose: 38.8672, KITTI/Cyclist_BEV_AP11_hard_loose: 38.8795, KITTI/Cyclist_2D_AP11_hard_loose: 39.0716, KITTI/Car_3D_AP11_easy_strict: 19.3311, KITTI/Car_BEV_AP11_easy_strict: 60.5400, KITTI/Car_2D_AP11_easy_strict: 74.7878, KITTI/Car_3D_AP11_moderate_strict: 18.2952, KITTI/Car_BEV_AP11_moderate_strict: 53.7086, KITTI/Car_2D_AP11_moderate_strict: 60.7794, KITTI/Car_3D_AP11_hard_strict: 16.6955, KITTI/Car_BEV_AP11_hard_strict: 48.9423, KITTI/Car_2D_AP11_hard_strict: 55.5837, KITTI/Car_3D_AP11_easy_loose: 85.4031, KITTI/Car_BEV_AP11_easy_loose: 89.0572, KITTI/Car_2D_AP11_easy_loose: 74.7878, KITTI/Car_3D_AP11_moderate_loose: 72.1462, KITTI/Car_BEV_AP11_moderate_loose: 78.7811, KITTI/Car_2D_AP11_moderate_loose: 60.7794, KITTI/Car_3D_AP11_hard_loose: 66.4870, KITTI/Car_BEV_AP11_hard_loose: 73.5040, KITTI/Car_2D_AP11_hard_loose: 55.5837, KITTI/Overall_3D_AP11_easy: 27.8132, KITTI/Overall_BEV_AP11_easy: 46.1930, KITTI/Overall_2D_AP11_easy: 54.9111, KITTI/Overall_3D_AP11_moderate: 23.5101, KITTI/Overall_BEV_AP11_moderate: 39.6946, KITTI/Overall_2D_AP11_moderate: 46.2579, KITTI/Overall_3D_AP11_hard: 21.3762, KITTI/Overall_BEV_AP11_hard: 36.1046, KITTI/Overall_2D_AP11_hard: 43.1279, KITTI/Pedestrian_3D_AP40_easy_strict: 22.4326, KITTI/Pedestrian_BEV_AP40_easy_strict: 35.1746, KITTI/Pedestrian_2D_AP40_easy_strict: 40.5100, KITTI/Pedestrian_3D_AP40_moderate_strict: 19.5547, KITTI/Pedestrian_BEV_AP40_moderate_strict: 30.4643, KITTI/Pedestrian_2D_AP40_moderate_strict: 35.9236, KITTI/Pedestrian_3D_AP40_hard_strict: 17.4806, KITTI/Pedestrian_BEV_AP40_hard_strict: 27.1163, KITTI/Pedestrian_2D_AP40_hard_strict: 32.6138, KITTI/Pedestrian_3D_AP40_easy_loose: 46.1818, KITTI/Pedestrian_BEV_AP40_easy_loose: 46.1818, KITTI/Pedestrian_2D_AP40_easy_loose: 40.5100, KITTI/Pedestrian_3D_AP40_moderate_loose: 41.1199, KITTI/Pedestrian_BEV_AP40_moderate_loose: 41.1199, KITTI/Pedestrian_2D_AP40_moderate_loose: 35.9236, KITTI/Pedestrian_3D_AP40_hard_loose: 37.1930, KITTI/Pedestrian_BEV_AP40_hard_loose: 37.1930, KITTI/Pedestrian_2D_AP40_hard_loose: 32.6138, KITTI/Cyclist_3D_AP40_easy_strict: 40.2181, KITTI/Cyclist_BEV_AP40_easy_strict: 41.7096, KITTI/Cyclist_2D_AP40_easy_strict: 46.7827, KITTI/Cyclist_3D_AP40_moderate_strict: 29.0333, KITTI/Cyclist_BEV_AP40_moderate_strict: 32.2896, KITTI/Cyclist_2D_AP40_moderate_strict: 38.4820, KITTI/Cyclist_3D_AP40_hard_strict: 26.7073, KITTI/Cyclist_BEV_AP40_hard_strict: 29.8930, KITTI/Cyclist_2D_AP40_hard_strict: 36.2098, KITTI/Cyclist_3D_AP40_easy_loose: 46.9293, KITTI/Cyclist_BEV_AP40_easy_loose: 46.9293, KITTI/Cyclist_2D_AP40_easy_loose: 46.7827, KITTI/Cyclist_3D_AP40_moderate_loose: 37.9301, KITTI/Cyclist_BEV_AP40_moderate_loose: 38.1454, KITTI/Cyclist_2D_AP40_moderate_loose: 38.4820, KITTI/Cyclist_3D_AP40_hard_loose: 35.5181, KITTI/Cyclist_BEV_AP40_hard_loose: 35.5345, KITTI/Cyclist_2D_AP40_hard_loose: 36.2098, KITTI/Car_3D_AP40_easy_strict: 17.3566, KITTI/Car_BEV_AP40_easy_strict: 59.8057, KITTI/Car_2D_AP40_easy_strict: 74.5428, KITTI/Car_3D_AP40_moderate_strict: 15.8543, KITTI/Car_BEV_AP40_moderate_strict: 53.1892, KITTI/Car_2D_AP40_moderate_strict: 60.7348, KITTI/Car_3D_AP40_hard_strict: 14.2301, KITTI/Car_BEV_AP40_hard_strict: 46.9819, KITTI/Car_2D_AP40_hard_strict: 53.8297, KITTI/Car_3D_AP40_easy_loose: 87.1764, KITTI/Car_BEV_AP40_easy_loose: 91.6735, KITTI/Car_2D_AP40_easy_loose: 74.5428, KITTI/Car_3D_AP40_moderate_loose: 73.2311, KITTI/Car_BEV_AP40_moderate_loose: 81.7542, KITTI/Car_2D_AP40_moderate_loose: 60.7348, KITTI/Car_3D_AP40_hard_loose: 65.6787, KITTI/Car_BEV_AP40_hard_loose: 74.1674, KITTI/Car_2D_AP40_hard_loose: 53.8297, KITTI/Overall_3D_AP40_easy: 26.6691, KITTI/Overall_BEV_AP40_easy: 45.5633, KITTI/Overall_2D_AP40_easy: 53.9452, KITTI/Overall_3D_AP40_moderate: 21.4808, KITTI/Overall_BEV_AP40_moderate: 38.6477, KITTI/Overall_2D_AP40_moderate: 45.0468, KITTI/Overall_3D_AP40_hard: 19.4727, KITTI/Overall_BEV_AP40_hard: 34.6637, KITTI/Overall_2D_AP40_hard: 40.8844
+2022-07-24 19:10:52,643 - mmdet - INFO - Epoch [3][50/1995]	lr: 9.998e-03, eta: 1:08:24, time: 1.096, data_time: 0.403, memory: 5764, loss_cls: 0.2707, loss_bbox: 1.3035, loss_dir: 0.1350, loss: 1.7092, grad_norm: 1.1691
+2022-07-24 19:11:26,960 - mmdet - INFO - Epoch [3][100/1995]	lr: 9.993e-03, eta: 1:07:49, time: 0.686, data_time: 0.010, memory: 5764, loss_cls: 0.2621, loss_bbox: 1.2309, loss_dir: 0.1338, loss: 1.6267, grad_norm: 1.0394
+2022-07-24 19:12:01,344 - mmdet - INFO - Epoch [3][150/1995]	lr: 9.985e-03, eta: 1:07:14, time: 0.688, data_time: 0.010, memory: 5764, loss_cls: 0.2564, loss_bbox: 1.2600, loss_dir: 0.1341, loss: 1.6504, grad_norm: 1.1011
+2022-07-24 19:12:35,468 - mmdet - INFO - Epoch [3][200/1995]	lr: 9.973e-03, eta: 1:06:39, time: 0.682, data_time: 0.010, memory: 5764, loss_cls: 0.2632, loss_bbox: 1.3092, loss_dir: 0.1337, loss: 1.7061, grad_norm: 1.1539
+2022-07-24 19:13:10,547 - mmdet - INFO - Epoch [3][250/1995]	lr: 9.957e-03, eta: 1:06:05, time: 0.702, data_time: 0.010, memory: 5764, loss_cls: 0.2552, loss_bbox: 1.3109, loss_dir: 0.1335, loss: 1.6996, grad_norm: 1.1471
+2022-07-24 19:13:44,653 - mmdet - INFO - Epoch [3][300/1995]	lr: 9.939e-03, eta: 1:05:30, time: 0.682, data_time: 0.010, memory: 5764, loss_cls: 0.2513, loss_bbox: 1.2204, loss_dir: 0.1340, loss: 1.6057, grad_norm: 0.9413
+2022-07-24 19:14:18,912 - mmdet - INFO - Epoch [3][350/1995]	lr: 9.916e-03, eta: 1:04:55, time: 0.685, data_time: 0.010, memory: 5764, loss_cls: 0.2492, loss_bbox: 1.2686, loss_dir: 0.1341, loss: 1.6519, grad_norm: 1.0320
+2022-07-24 19:14:53,238 - mmdet - INFO - Epoch [3][400/1995]	lr: 9.891e-03, eta: 1:04:20, time: 0.687, data_time: 0.010, memory: 5764, loss_cls: 0.2495, loss_bbox: 1.1955, loss_dir: 0.1348, loss: 1.5798, grad_norm: 1.0445
+2022-07-24 19:15:27,841 - mmdet - INFO - Epoch [3][450/1995]	lr: 9.862e-03, eta: 1:03:46, time: 0.692, data_time: 0.010, memory: 5764, loss_cls: 0.2560, loss_bbox: 1.2566, loss_dir: 0.1341, loss: 1.6467, grad_norm: 1.0263
+2022-07-24 19:16:02,084 - mmdet - INFO - Epoch [3][500/1995]	lr: 9.829e-03, eta: 1:03:11, time: 0.685, data_time: 0.010, memory: 5764, loss_cls: 0.2603, loss_bbox: 1.2585, loss_dir: 0.1334, loss: 1.6522, grad_norm: 1.0762
+2022-07-24 19:16:36,112 - mmdet - INFO - Epoch [3][550/1995]	lr: 9.794e-03, eta: 1:02:36, time: 0.681, data_time: 0.010, memory: 5764, loss_cls: 0.2770, loss_bbox: 1.3521, loss_dir: 0.1349, loss: 1.7641, grad_norm: 1.2829
+2022-07-24 19:17:10,281 - mmdet - INFO - Epoch [3][600/1995]	lr: 9.755e-03, eta: 1:02:01, time: 0.683, data_time: 0.010, memory: 5764, loss_cls: 0.2576, loss_bbox: 1.2650, loss_dir: 0.1340, loss: 1.6566, grad_norm: 0.9973
+2022-07-24 19:17:44,663 - mmdet - INFO - Epoch [3][650/1995]	lr: 9.713e-03, eta: 1:01:26, time: 0.688, data_time: 0.010, memory: 5764, loss_cls: 0.2481, loss_bbox: 1.1945, loss_dir: 0.1340, loss: 1.5767, grad_norm: 0.9980
+2022-07-24 19:18:19,103 - mmdet - INFO - Epoch [3][700/1995]	lr: 9.667e-03, eta: 1:00:51, time: 0.689, data_time: 0.010, memory: 5764, loss_cls: 0.2460, loss_bbox: 1.1843, loss_dir: 0.1328, loss: 1.5631, grad_norm: 0.9963
+2022-07-24 19:18:53,174 - mmdet - INFO - Epoch [3][750/1995]	lr: 9.619e-03, eta: 1:00:16, time: 0.681, data_time: 0.010, memory: 5764, loss_cls: 0.2595, loss_bbox: 1.2157, loss_dir: 0.1340, loss: 1.6092, grad_norm: 1.0876
+2022-07-24 19:19:27,601 - mmdet - INFO - Epoch [3][800/1995]	lr: 9.567e-03, eta: 0:59:41, time: 0.689, data_time: 0.010, memory: 5764, loss_cls: 0.2547, loss_bbox: 1.2141, loss_dir: 0.1331, loss: 1.6019, grad_norm: 1.0030
+2022-07-24 19:20:01,970 - mmdet - INFO - Epoch [3][850/1995]	lr: 9.512e-03, eta: 0:59:07, time: 0.687, data_time: 0.010, memory: 5764, loss_cls: 0.2527, loss_bbox: 1.2345, loss_dir: 0.1336, loss: 1.6207, grad_norm: 0.9624
+2022-07-24 19:20:36,811 - mmdet - INFO - Epoch [3][900/1995]	lr: 9.454e-03, eta: 0:58:32, time: 0.697, data_time: 0.010, memory: 5764, loss_cls: 0.2521, loss_bbox: 1.2434, loss_dir: 0.1317, loss: 1.6273, grad_norm: 1.1244
+2022-07-24 19:21:11,563 - mmdet - INFO - Epoch [3][950/1995]	lr: 9.392e-03, eta: 0:57:58, time: 0.695, data_time: 0.010, memory: 5764, loss_cls: 0.2568, loss_bbox: 1.2191, loss_dir: 0.1344, loss: 1.6103, grad_norm: 1.0845
+2022-07-24 19:21:45,623 - mmdet - INFO - Epoch [3][1000/1995]	lr: 9.328e-03, eta: 0:57:23, time: 0.681, data_time: 0.010, memory: 5764, loss_cls: 0.2471, loss_bbox: 1.2123, loss_dir: 0.1329, loss: 1.5923, grad_norm: 1.2145
+2022-07-24 19:22:20,028 - mmdet - INFO - Epoch [3][1050/1995]	lr: 9.261e-03, eta: 0:56:48, time: 0.688, data_time: 0.010, memory: 5764, loss_cls: 0.2442, loss_bbox: 1.2028, loss_dir: 0.1338, loss: 1.5808, grad_norm: 0.9254
+2022-07-24 19:22:54,115 - mmdet - INFO - Epoch [3][1100/1995]	lr: 9.191e-03, eta: 0:56:13, time: 0.682, data_time: 0.010, memory: 5764, loss_cls: 0.2512, loss_bbox: 1.2370, loss_dir: 0.1329, loss: 1.6212, grad_norm: 1.0455
+2022-07-24 19:23:28,624 - mmdet - INFO - Epoch [3][1150/1995]	lr: 9.118e-03, eta: 0:55:39, time: 0.690, data_time: 0.010, memory: 5764, loss_cls: 0.2415, loss_bbox: 1.1846, loss_dir: 0.1326, loss: 1.5587, grad_norm: 0.9749
+2022-07-24 19:24:03,056 - mmdet - INFO - Epoch [3][1200/1995]	lr: 9.042e-03, eta: 0:55:04, time: 0.689, data_time: 0.010, memory: 5764, loss_cls: 0.2425, loss_bbox: 1.1879, loss_dir: 0.1329, loss: 1.5633, grad_norm: 1.0175
+2022-07-24 19:24:37,224 - mmdet - INFO - Epoch [3][1250/1995]	lr: 8.963e-03, eta: 0:54:29, time: 0.683, data_time: 0.010, memory: 5764, loss_cls: 0.2403, loss_bbox: 1.1802, loss_dir: 0.1330, loss: 1.5535, grad_norm: 1.0511
+2022-07-24 19:25:11,593 - mmdet - INFO - Epoch [3][1300/1995]	lr: 8.882e-03, eta: 0:53:55, time: 0.687, data_time: 0.010, memory: 5764, loss_cls: 0.2452, loss_bbox: 1.2275, loss_dir: 0.1335, loss: 1.6062, grad_norm: 1.1094
+2022-07-24 19:25:45,961 - mmdet - INFO - Epoch [3][1350/1995]	lr: 8.798e-03, eta: 0:53:20, time: 0.687, data_time: 0.010, memory: 5764, loss_cls: 0.2500, loss_bbox: 1.2167, loss_dir: 0.1322, loss: 1.5989, grad_norm: 1.0422
+2022-07-24 19:26:20,102 - mmdet - INFO - Epoch [3][1400/1995]	lr: 8.711e-03, eta: 0:52:45, time: 0.683, data_time: 0.010, memory: 5764, loss_cls: 0.2472, loss_bbox: 1.2029, loss_dir: 0.1328, loss: 1.5829, grad_norm: 0.9761
+2022-07-24 19:26:54,793 - mmdet - INFO - Epoch [3][1450/1995]	lr: 8.622e-03, eta: 0:52:11, time: 0.694, data_time: 0.010, memory: 5764, loss_cls: 0.2443, loss_bbox: 1.1989, loss_dir: 0.1342, loss: 1.5774, grad_norm: 1.0442
+2022-07-24 19:27:28,607 - mmdet - INFO - Epoch [3][1500/1995]	lr: 8.530e-03, eta: 0:51:36, time: 0.676, data_time: 0.010, memory: 5764, loss_cls: 0.2378, loss_bbox: 1.1915, loss_dir: 0.1332, loss: 1.5625, grad_norm: 0.9732
+2022-07-24 19:28:02,765 - mmdet - INFO - Epoch [3][1550/1995]	lr: 8.436e-03, eta: 0:51:01, time: 0.683, data_time: 0.010, memory: 5764, loss_cls: 0.2389, loss_bbox: 1.2038, loss_dir: 0.1336, loss: 1.5762, grad_norm: 0.9514
+2022-07-24 19:28:36,515 - mmdet - INFO - Epoch [3][1600/1995]	lr: 8.340e-03, eta: 0:50:26, time: 0.675, data_time: 0.010, memory: 5764, loss_cls: 0.2448, loss_bbox: 1.1748, loss_dir: 0.1315, loss: 1.5510, grad_norm: 0.9115
+2022-07-24 19:29:10,795 - mmdet - INFO - Epoch [3][1650/1995]	lr: 8.241e-03, eta: 0:49:51, time: 0.686, data_time: 0.010, memory: 5764, loss_cls: 0.2429, loss_bbox: 1.1893, loss_dir: 0.1334, loss: 1.5656, grad_norm: 0.9757
+2022-07-24 19:29:45,185 - mmdet - INFO - Epoch [3][1700/1995]	lr: 8.140e-03, eta: 0:49:17, time: 0.688, data_time: 0.010, memory: 5764, loss_cls: 0.2376, loss_bbox: 1.1943, loss_dir: 0.1324, loss: 1.5644, grad_norm: 0.9598
+2022-07-24 19:30:19,738 - mmdet - INFO - Epoch [3][1750/1995]	lr: 8.037e-03, eta: 0:48:42, time: 0.691, data_time: 0.010, memory: 5764, loss_cls: 0.2336, loss_bbox: 1.1217, loss_dir: 0.1315, loss: 1.4868, grad_norm: 0.9829
+2022-07-24 19:30:54,453 - mmdet - INFO - Epoch [3][1800/1995]	lr: 7.932e-03, eta: 0:48:08, time: 0.694, data_time: 0.010, memory: 5764, loss_cls: 0.2309, loss_bbox: 1.1604, loss_dir: 0.1339, loss: 1.5251, grad_norm: 0.9898
+2022-07-24 19:31:29,032 - mmdet - INFO - Epoch [3][1850/1995]	lr: 7.824e-03, eta: 0:47:33, time: 0.692, data_time: 0.010, memory: 5764, loss_cls: 0.2342, loss_bbox: 1.1147, loss_dir: 0.1330, loss: 1.4818, grad_norm: 0.9059
+2022-07-24 19:32:03,293 - mmdet - INFO - Epoch [3][1900/1995]	lr: 7.715e-03, eta: 0:46:59, time: 0.685, data_time: 0.010, memory: 5764, loss_cls: 0.2400, loss_bbox: 1.1575, loss_dir: 0.1346, loss: 1.5321, grad_norm: 0.9699
+2022-07-24 19:32:37,463 - mmdet - INFO - Epoch [3][1950/1995]	lr: 7.604e-03, eta: 0:46:24, time: 0.683, data_time: 0.010, memory: 5764, loss_cls: 0.2328, loss_bbox: 1.1510, loss_dir: 0.1331, loss: 1.5169, grad_norm: 0.9379
+2022-07-24 19:33:07,509 - mmdet - INFO - Saving checkpoint at 3 epochs
+2022-07-24 19:34:01,915 - mmdet - INFO - Epoch [4][50/1995]	lr: 7.388e-03, eta: 0:45:11, time: 1.083, data_time: 0.392, memory: 5764, loss_cls: 0.2414, loss_bbox: 1.1534, loss_dir: 0.1333, loss: 1.5281, grad_norm: 0.9736
+2022-07-24 19:34:36,476 - mmdet - INFO - Epoch [4][100/1995]	lr: 7.272e-03, eta: 0:44:37, time: 0.691, data_time: 0.010, memory: 5764, loss_cls: 0.2339, loss_bbox: 1.1257, loss_dir: 0.1342, loss: 1.4938, grad_norm: 0.9980
+2022-07-24 19:35:10,818 - mmdet - INFO - Epoch [4][150/1995]	lr: 7.154e-03, eta: 0:44:02, time: 0.687, data_time: 0.010, memory: 5764, loss_cls: 0.2303, loss_bbox: 1.0932, loss_dir: 0.1321, loss: 1.4557, grad_norm: 0.9083
+2022-07-24 19:35:44,774 - mmdet - INFO - Epoch [4][200/1995]	lr: 7.035e-03, eta: 0:43:27, time: 0.679, data_time: 0.010, memory: 5764, loss_cls: 0.2326, loss_bbox: 1.1204, loss_dir: 0.1317, loss: 1.4846, grad_norm: 0.8970
+2022-07-24 19:36:19,249 - mmdet - INFO - Epoch [4][250/1995]	lr: 6.914e-03, eta: 0:42:53, time: 0.689, data_time: 0.010, memory: 5764, loss_cls: 0.2334, loss_bbox: 1.1090, loss_dir: 0.1314, loss: 1.4738, grad_norm: 0.9405
+2022-07-24 19:36:53,746 - mmdet - INFO - Epoch [4][300/1995]	lr: 6.792e-03, eta: 0:42:19, time: 0.690, data_time: 0.010, memory: 5764, loss_cls: 0.2327, loss_bbox: 1.1221, loss_dir: 0.1329, loss: 1.4877, grad_norm: 0.8863
+2022-07-24 19:37:27,542 - mmdet - INFO - Epoch [4][350/1995]	lr: 6.669e-03, eta: 0:41:44, time: 0.676, data_time: 0.010, memory: 5764, loss_cls: 0.2254, loss_bbox: 1.0964, loss_dir: 0.1314, loss: 1.4532, grad_norm: 0.9958
+2022-07-24 19:38:01,944 - mmdet - INFO - Epoch [4][400/1995]	lr: 6.545e-03, eta: 0:41:09, time: 0.688, data_time: 0.010, memory: 5764, loss_cls: 0.2264, loss_bbox: 1.0673, loss_dir: 0.1335, loss: 1.4272, grad_norm: 0.9222
+2022-07-24 19:38:36,125 - mmdet - INFO - Epoch [4][450/1995]	lr: 6.420e-03, eta: 0:40:35, time: 0.684, data_time: 0.010, memory: 5764, loss_cls: 0.2263, loss_bbox: 1.1473, loss_dir: 0.1333, loss: 1.5069, grad_norm: 0.9824
+2022-07-24 19:39:10,779 - mmdet - INFO - Epoch [4][500/1995]	lr: 6.293e-03, eta: 0:40:01, time: 0.693, data_time: 0.010, memory: 5764, loss_cls: 0.2305, loss_bbox: 1.1163, loss_dir: 0.1335, loss: 1.4803, grad_norm: 0.9250
+2022-07-24 19:39:45,066 - mmdet - INFO - Epoch [4][550/1995]	lr: 6.166e-03, eta: 0:39:26, time: 0.686, data_time: 0.010, memory: 5764, loss_cls: 0.2230, loss_bbox: 1.0682, loss_dir: 0.1311, loss: 1.4223, grad_norm: 0.9376
+2022-07-24 19:40:19,256 - mmdet - INFO - Epoch [4][600/1995]	lr: 6.038e-03, eta: 0:38:52, time: 0.684, data_time: 0.010, memory: 5764, loss_cls: 0.2285, loss_bbox: 1.1245, loss_dir: 0.1328, loss: 1.4858, grad_norm: 0.9227
+2022-07-24 19:40:53,373 - mmdet - INFO - Epoch [4][650/1995]	lr: 5.910e-03, eta: 0:38:17, time: 0.682, data_time: 0.010, memory: 5764, loss_cls: 0.2291, loss_bbox: 1.1168, loss_dir: 0.1315, loss: 1.4774, grad_norm: 0.9460
+2022-07-24 19:41:27,965 - mmdet - INFO - Epoch [4][700/1995]	lr: 5.780e-03, eta: 0:37:43, time: 0.692, data_time: 0.010, memory: 5764, loss_cls: 0.2213, loss_bbox: 1.1023, loss_dir: 0.1324, loss: 1.4559, grad_norm: 0.9581
+2022-07-24 19:42:02,120 - mmdet - INFO - Epoch [4][750/1995]	lr: 5.650e-03, eta: 0:37:08, time: 0.683, data_time: 0.010, memory: 5764, loss_cls: 0.2211, loss_bbox: 1.0618, loss_dir: 0.1327, loss: 1.4156, grad_norm: 0.8115
+2022-07-24 19:42:36,224 - mmdet - INFO - Epoch [4][800/1995]	lr: 5.520e-03, eta: 0:36:34, time: 0.682, data_time: 0.010, memory: 5764, loss_cls: 0.2259, loss_bbox: 1.0835, loss_dir: 0.1312, loss: 1.4406, grad_norm: 1.0174
+2022-07-24 19:43:10,448 - mmdet - INFO - Epoch [4][850/1995]	lr: 5.389e-03, eta: 0:35:59, time: 0.684, data_time: 0.010, memory: 5764, loss_cls: 0.2281, loss_bbox: 1.0709, loss_dir: 0.1306, loss: 1.4296, grad_norm: 0.8950
+2022-07-24 19:43:44,903 - mmdet - INFO - Epoch [4][900/1995]	lr: 5.258e-03, eta: 0:35:25, time: 0.689, data_time: 0.010, memory: 5764, loss_cls: 0.2238, loss_bbox: 1.1008, loss_dir: 0.1311, loss: 1.4557, grad_norm: 0.8871
+2022-07-24 19:44:18,789 - mmdet - INFO - Epoch [4][950/1995]	lr: 5.127e-03, eta: 0:34:50, time: 0.678, data_time: 0.010, memory: 5764, loss_cls: 0.2221, loss_bbox: 1.0651, loss_dir: 0.1321, loss: 1.4192, grad_norm: 0.9778
+2022-07-24 19:44:53,204 - mmdet - INFO - Epoch [4][1000/1995]	lr: 4.996e-03, eta: 0:34:16, time: 0.688, data_time: 0.010, memory: 5764, loss_cls: 0.2235, loss_bbox: 1.0590, loss_dir: 0.1317, loss: 1.4142, grad_norm: 0.8790
+2022-07-24 19:45:27,457 - mmdet - INFO - Epoch [4][1050/1995]	lr: 4.865e-03, eta: 0:33:42, time: 0.685, data_time: 0.010, memory: 5764, loss_cls: 0.2184, loss_bbox: 1.0775, loss_dir: 0.1317, loss: 1.4277, grad_norm: 0.8808
+2022-07-24 19:46:01,576 - mmdet - INFO - Epoch [4][1100/1995]	lr: 4.734e-03, eta: 0:33:07, time: 0.682, data_time: 0.010, memory: 5764, loss_cls: 0.2154, loss_bbox: 1.0507, loss_dir: 0.1322, loss: 1.3984, grad_norm: 1.0214
+2022-07-24 19:46:36,075 - mmdet - INFO - Epoch [4][1150/1995]	lr: 4.603e-03, eta: 0:32:33, time: 0.690, data_time: 0.010, memory: 5764, loss_cls: 0.2229, loss_bbox: 1.0876, loss_dir: 0.1322, loss: 1.4426, grad_norm: 0.8848
+2022-07-24 19:47:10,151 - mmdet - INFO - Epoch [4][1200/1995]	lr: 4.472e-03, eta: 0:31:58, time: 0.682, data_time: 0.010, memory: 5764, loss_cls: 0.2167, loss_bbox: 1.0536, loss_dir: 0.1296, loss: 1.3999, grad_norm: 0.9150
+2022-07-24 19:47:44,602 - mmdet - INFO - Epoch [4][1250/1995]	lr: 4.342e-03, eta: 0:31:24, time: 0.689, data_time: 0.010, memory: 5764, loss_cls: 0.2172, loss_bbox: 1.0685, loss_dir: 0.1317, loss: 1.4174, grad_norm: 0.9238
+2022-07-24 19:48:18,926 - mmdet - INFO - Epoch [4][1300/1995]	lr: 4.212e-03, eta: 0:30:49, time: 0.686, data_time: 0.010, memory: 5764, loss_cls: 0.2187, loss_bbox: 1.0249, loss_dir: 0.1324, loss: 1.3760, grad_norm: 0.8734
+2022-07-24 19:48:53,155 - mmdet - INFO - Epoch [4][1350/1995]	lr: 4.083e-03, eta: 0:30:15, time: 0.685, data_time: 0.010, memory: 5764, loss_cls: 0.2147, loss_bbox: 1.0332, loss_dir: 0.1317, loss: 1.3797, grad_norm: 0.8270
+2022-07-24 19:49:27,391 - mmdet - INFO - Epoch [4][1400/1995]	lr: 3.954e-03, eta: 0:29:41, time: 0.685, data_time: 0.010, memory: 5764, loss_cls: 0.2105, loss_bbox: 1.0376, loss_dir: 0.1321, loss: 1.3801, grad_norm: 0.8323
+2022-07-24 19:50:01,505 - mmdet - INFO - Epoch [4][1450/1995]	lr: 3.826e-03, eta: 0:29:06, time: 0.682, data_time: 0.010, memory: 5764, loss_cls: 0.2178, loss_bbox: 1.0544, loss_dir: 0.1315, loss: 1.4038, grad_norm: 0.9825
+2022-07-24 19:50:35,628 - mmdet - INFO - Epoch [4][1500/1995]	lr: 3.699e-03, eta: 0:28:32, time: 0.682, data_time: 0.010, memory: 5764, loss_cls: 0.2202, loss_bbox: 1.0163, loss_dir: 0.1314, loss: 1.3680, grad_norm: 0.9280
+2022-07-24 19:51:10,959 - mmdet - INFO - Epoch [4][1550/1995]	lr: 3.573e-03, eta: 0:27:58, time: 0.707, data_time: 0.029, memory: 5764, loss_cls: 0.2063, loss_bbox: 1.0326, loss_dir: 0.1301, loss: 1.3690, grad_norm: 0.8985
+2022-07-24 19:51:45,535 - mmdet - INFO - Epoch [4][1600/1995]	lr: 3.447e-03, eta: 0:27:23, time: 0.692, data_time: 0.010, memory: 5764, loss_cls: 0.2072, loss_bbox: 0.9983, loss_dir: 0.1296, loss: 1.3351, grad_norm: 0.8174
+2022-07-24 19:52:19,930 - mmdet - INFO - Epoch [4][1650/1995]	lr: 3.323e-03, eta: 0:26:49, time: 0.688, data_time: 0.010, memory: 5764, loss_cls: 0.2164, loss_bbox: 1.0350, loss_dir: 0.1308, loss: 1.3822, grad_norm: 0.8281
+2022-07-24 19:52:54,271 - mmdet - INFO - Epoch [4][1700/1995]	lr: 3.200e-03, eta: 0:26:14, time: 0.687, data_time: 0.010, memory: 5764, loss_cls: 0.2167, loss_bbox: 0.9877, loss_dir: 0.1314, loss: 1.3358, grad_norm: 0.8963
+2022-07-24 19:53:28,446 - mmdet - INFO - Epoch [4][1750/1995]	lr: 3.078e-03, eta: 0:25:40, time: 0.683, data_time: 0.010, memory: 5764, loss_cls: 0.2117, loss_bbox: 1.0135, loss_dir: 0.1294, loss: 1.3546, grad_norm: 0.7935
+2022-07-24 19:54:02,785 - mmdet - INFO - Epoch [4][1800/1995]	lr: 2.958e-03, eta: 0:25:06, time: 0.687, data_time: 0.010, memory: 5764, loss_cls: 0.2081, loss_bbox: 0.9939, loss_dir: 0.1320, loss: 1.3340, grad_norm: 0.8318
+2022-07-24 19:54:37,247 - mmdet - INFO - Epoch [4][1850/1995]	lr: 2.839e-03, eta: 0:24:31, time: 0.689, data_time: 0.010, memory: 5764, loss_cls: 0.2106, loss_bbox: 0.9862, loss_dir: 0.1302, loss: 1.3271, grad_norm: 0.8577
+2022-07-24 19:55:11,947 - mmdet - INFO - Epoch [4][1900/1995]	lr: 2.721e-03, eta: 0:23:57, time: 0.694, data_time: 0.010, memory: 5764, loss_cls: 0.2123, loss_bbox: 0.9615, loss_dir: 0.1295, loss: 1.3034, grad_norm: 0.8112
+2022-07-24 19:55:46,256 - mmdet - INFO - Epoch [4][1950/1995]	lr: 2.605e-03, eta: 0:23:23, time: 0.686, data_time: 0.010, memory: 5764, loss_cls: 0.2085, loss_bbox: 0.9677, loss_dir: 0.1297, loss: 1.3059, grad_norm: 0.8537
+2022-07-24 19:56:16,216 - mmdet - INFO - Saving checkpoint at 4 epochs
+2022-07-24 19:57:37,478 - mmdet - INFO - 
+
+----------- AP11 Results ------------
+
+Pedestrian AP11@0.50, 0.50, 0.50:
+bbox AP11:48.7374, 44.7952, 40.9825
+bev  AP11:48.6006, 44.2514, 40.3490
+3d   AP11:41.9830, 38.5594, 35.3763
+aos  AP11:29.62, 27.65, 25.53
+Pedestrian AP11@0.50, 0.25, 0.25:
+bbox AP11:48.7374, 44.7952, 40.9825
+bev  AP11:56.8340, 52.1991, 47.9900
+3d   AP11:56.8047, 52.1495, 47.9526
+aos  AP11:29.62, 27.65, 25.53
+Cyclist AP11@0.50, 0.50, 0.50:
+bbox AP11:71.0703, 61.2762, 57.8778
+bev  AP11:65.5459, 51.3154, 47.0010
+3d   AP11:60.3553, 47.0289, 44.4028
+aos  AP11:34.67, 30.65, 28.96
+Cyclist AP11@0.50, 0.25, 0.25:
+bbox AP11:71.0703, 61.2762, 57.8778
+bev  AP11:70.3167, 56.6713, 52.9893
+3d   AP11:70.3167, 56.5044, 52.9768
+aos  AP11:34.67, 30.65, 28.96
+Car AP11@0.70, 0.70, 0.70:
+bbox AP11:89.1645, 78.4775, 74.6903
+bev  AP11:87.9135, 76.5557, 69.0036
+3d   AP11:69.0551, 54.3425, 47.4193
+aos  AP11:73.56, 64.09, 61.01
+Car AP11@0.70, 0.50, 0.50:
+bbox AP11:89.1645, 78.4775, 74.6903
+bev  AP11:90.4982, 88.1194, 85.0355
+3d   AP11:90.2363, 84.4489, 79.3028
+aos  AP11:73.56, 64.09, 61.01
+
+Overall AP11@easy, moderate, hard:
+bbox AP11:69.6574, 61.5163, 57.8502
+bev  AP11:67.3534, 57.3742, 52.1179
+3d   AP11:57.1311, 46.6436, 42.3994
+aos  AP11:45.95, 40.80, 38.50
+
+----------- AP40 Results ------------
+
+Pedestrian AP40@0.50, 0.50, 0.50:
+bbox AP40:47.2334, 42.6519, 39.0599
+bev  AP40:46.7245, 42.1957, 38.2381
+3d   AP40:39.0225, 35.7855, 32.2845
+aos  AP40:24.50, 22.30, 20.29
+Pedestrian AP40@0.50, 0.25, 0.25:
+bbox AP40:47.2334, 42.6519, 39.0599
+bev  AP40:56.7711, 51.3018, 46.8100
+3d   AP40:56.7322, 51.2162, 46.7468
+aos  AP40:24.50, 22.30, 20.29
+Cyclist AP40@0.50, 0.50, 0.50:
+bbox AP40:72.4392, 61.1493, 57.5450
+bev  AP40:65.7738, 49.7748, 45.8817
+3d   AP40:60.0924, 46.1971, 42.6724
+aos  AP40:35.27, 30.38, 28.55
+Cyclist AP40@0.50, 0.25, 0.25:
+bbox AP40:72.4392, 61.1493, 57.5450
+bev  AP40:71.2802, 56.2745, 52.3320
+3d   AP40:71.2800, 56.2168, 52.2618
+aos  AP40:35.27, 30.38, 28.55
+Car AP40@0.70, 0.70, 0.70:
+bbox AP40:92.2745, 80.1054, 75.0246
+bev  AP40:90.9165, 76.7574, 69.7722
+3d   AP40:68.3034, 52.3329, 47.2039
+aos  AP40:74.65, 63.91, 59.73
+Car AP40@0.70, 0.50, 0.50:
+bbox AP40:92.2745, 80.1054, 75.0246
+bev  AP40:95.8166, 89.0357, 85.7144
+3d   AP40:95.2998, 86.1435, 81.1769
+aos  AP40:74.65, 63.91, 59.73
+
+Overall AP40@easy, moderate, hard:
+bbox AP40:70.6490, 61.3022, 57.2098
+bev  AP40:67.8049, 56.2426, 51.2974
+3d   AP40:55.8061, 44.7719, 40.7203
+aos  AP40:44.81, 38.86, 36.19
+
+2022-07-24 19:57:37,488 - mmdet - INFO - Exp name: hv_pointpillars_secfpn_6x8_160e_kitti-3d-3class.py
+2022-07-24 19:57:37,488 - mmdet - INFO - Epoch(val) [4][1497]	KITTI/Pedestrian_3D_AP11_easy_strict: 41.9830, KITTI/Pedestrian_BEV_AP11_easy_strict: 48.6006, KITTI/Pedestrian_2D_AP11_easy_strict: 48.7374, KITTI/Pedestrian_3D_AP11_moderate_strict: 38.5594, KITTI/Pedestrian_BEV_AP11_moderate_strict: 44.2514, KITTI/Pedestrian_2D_AP11_moderate_strict: 44.7952, KITTI/Pedestrian_3D_AP11_hard_strict: 35.3763, KITTI/Pedestrian_BEV_AP11_hard_strict: 40.3490, KITTI/Pedestrian_2D_AP11_hard_strict: 40.9825, KITTI/Pedestrian_3D_AP11_easy_loose: 56.8047, KITTI/Pedestrian_BEV_AP11_easy_loose: 56.8340, KITTI/Pedestrian_2D_AP11_easy_loose: 48.7374, KITTI/Pedestrian_3D_AP11_moderate_loose: 52.1495, KITTI/Pedestrian_BEV_AP11_moderate_loose: 52.1991, KITTI/Pedestrian_2D_AP11_moderate_loose: 44.7952, KITTI/Pedestrian_3D_AP11_hard_loose: 47.9526, KITTI/Pedestrian_BEV_AP11_hard_loose: 47.9900, KITTI/Pedestrian_2D_AP11_hard_loose: 40.9825, KITTI/Cyclist_3D_AP11_easy_strict: 60.3553, KITTI/Cyclist_BEV_AP11_easy_strict: 65.5459, KITTI/Cyclist_2D_AP11_easy_strict: 71.0703, KITTI/Cyclist_3D_AP11_moderate_strict: 47.0289, KITTI/Cyclist_BEV_AP11_moderate_strict: 51.3154, KITTI/Cyclist_2D_AP11_moderate_strict: 61.2762, KITTI/Cyclist_3D_AP11_hard_strict: 44.4028, KITTI/Cyclist_BEV_AP11_hard_strict: 47.0010, KITTI/Cyclist_2D_AP11_hard_strict: 57.8778, KITTI/Cyclist_3D_AP11_easy_loose: 70.3167, KITTI/Cyclist_BEV_AP11_easy_loose: 70.3167, KITTI/Cyclist_2D_AP11_easy_loose: 71.0703, KITTI/Cyclist_3D_AP11_moderate_loose: 56.5044, KITTI/Cyclist_BEV_AP11_moderate_loose: 56.6713, KITTI/Cyclist_2D_AP11_moderate_loose: 61.2762, KITTI/Cyclist_3D_AP11_hard_loose: 52.9768, KITTI/Cyclist_BEV_AP11_hard_loose: 52.9893, KITTI/Cyclist_2D_AP11_hard_loose: 57.8778, KITTI/Car_3D_AP11_easy_strict: 69.0551, KITTI/Car_BEV_AP11_easy_strict: 87.9135, KITTI/Car_2D_AP11_easy_strict: 89.1645, KITTI/Car_3D_AP11_moderate_strict: 54.3425, KITTI/Car_BEV_AP11_moderate_strict: 76.5557, KITTI/Car_2D_AP11_moderate_strict: 78.4775, KITTI/Car_3D_AP11_hard_strict: 47.4193, KITTI/Car_BEV_AP11_hard_strict: 69.0036, KITTI/Car_2D_AP11_hard_strict: 74.6903, KITTI/Car_3D_AP11_easy_loose: 90.2363, KITTI/Car_BEV_AP11_easy_loose: 90.4982, KITTI/Car_2D_AP11_easy_loose: 89.1645, KITTI/Car_3D_AP11_moderate_loose: 84.4489, KITTI/Car_BEV_AP11_moderate_loose: 88.1194, KITTI/Car_2D_AP11_moderate_loose: 78.4775, KITTI/Car_3D_AP11_hard_loose: 79.3028, KITTI/Car_BEV_AP11_hard_loose: 85.0355, KITTI/Car_2D_AP11_hard_loose: 74.6903, KITTI/Overall_3D_AP11_easy: 57.1311, KITTI/Overall_BEV_AP11_easy: 67.3534, KITTI/Overall_2D_AP11_easy: 69.6574, KITTI/Overall_3D_AP11_moderate: 46.6436, KITTI/Overall_BEV_AP11_moderate: 57.3742, KITTI/Overall_2D_AP11_moderate: 61.5163, KITTI/Overall_3D_AP11_hard: 42.3994, KITTI/Overall_BEV_AP11_hard: 52.1179, KITTI/Overall_2D_AP11_hard: 57.8502, KITTI/Pedestrian_3D_AP40_easy_strict: 39.0225, KITTI/Pedestrian_BEV_AP40_easy_strict: 46.7245, KITTI/Pedestrian_2D_AP40_easy_strict: 47.2334, KITTI/Pedestrian_3D_AP40_moderate_strict: 35.7855, KITTI/Pedestrian_BEV_AP40_moderate_strict: 42.1957, KITTI/Pedestrian_2D_AP40_moderate_strict: 42.6519, KITTI/Pedestrian_3D_AP40_hard_strict: 32.2845, KITTI/Pedestrian_BEV_AP40_hard_strict: 38.2381, KITTI/Pedestrian_2D_AP40_hard_strict: 39.0599, KITTI/Pedestrian_3D_AP40_easy_loose: 56.7322, KITTI/Pedestrian_BEV_AP40_easy_loose: 56.7711, KITTI/Pedestrian_2D_AP40_easy_loose: 47.2334, KITTI/Pedestrian_3D_AP40_moderate_loose: 51.2162, KITTI/Pedestrian_BEV_AP40_moderate_loose: 51.3018, KITTI/Pedestrian_2D_AP40_moderate_loose: 42.6519, KITTI/Pedestrian_3D_AP40_hard_loose: 46.7468, KITTI/Pedestrian_BEV_AP40_hard_loose: 46.8100, KITTI/Pedestrian_2D_AP40_hard_loose: 39.0599, KITTI/Cyclist_3D_AP40_easy_strict: 60.0924, KITTI/Cyclist_BEV_AP40_easy_strict: 65.7738, KITTI/Cyclist_2D_AP40_easy_strict: 72.4392, KITTI/Cyclist_3D_AP40_moderate_strict: 46.1971, KITTI/Cyclist_BEV_AP40_moderate_strict: 49.7748, KITTI/Cyclist_2D_AP40_moderate_strict: 61.1493, KITTI/Cyclist_3D_AP40_hard_strict: 42.6724, KITTI/Cyclist_BEV_AP40_hard_strict: 45.8817, KITTI/Cyclist_2D_AP40_hard_strict: 57.5450, KITTI/Cyclist_3D_AP40_easy_loose: 71.2800, KITTI/Cyclist_BEV_AP40_easy_loose: 71.2802, KITTI/Cyclist_2D_AP40_easy_loose: 72.4392, KITTI/Cyclist_3D_AP40_moderate_loose: 56.2168, KITTI/Cyclist_BEV_AP40_moderate_loose: 56.2745, KITTI/Cyclist_2D_AP40_moderate_loose: 61.1493, KITTI/Cyclist_3D_AP40_hard_loose: 52.2618, KITTI/Cyclist_BEV_AP40_hard_loose: 52.3320, KITTI/Cyclist_2D_AP40_hard_loose: 57.5450, KITTI/Car_3D_AP40_easy_strict: 68.3034, KITTI/Car_BEV_AP40_easy_strict: 90.9165, KITTI/Car_2D_AP40_easy_strict: 92.2745, KITTI/Car_3D_AP40_moderate_strict: 52.3329, KITTI/Car_BEV_AP40_moderate_strict: 76.7574, KITTI/Car_2D_AP40_moderate_strict: 80.1054, KITTI/Car_3D_AP40_hard_strict: 47.2039, KITTI/Car_BEV_AP40_hard_strict: 69.7722, KITTI/Car_2D_AP40_hard_strict: 75.0246, KITTI/Car_3D_AP40_easy_loose: 95.2998, KITTI/Car_BEV_AP40_easy_loose: 95.8166, KITTI/Car_2D_AP40_easy_loose: 92.2745, KITTI/Car_3D_AP40_moderate_loose: 86.1435, KITTI/Car_BEV_AP40_moderate_loose: 89.0357, KITTI/Car_2D_AP40_moderate_loose: 80.1054, KITTI/Car_3D_AP40_hard_loose: 81.1769, KITTI/Car_BEV_AP40_hard_loose: 85.7144, KITTI/Car_2D_AP40_hard_loose: 75.0246, KITTI/Overall_3D_AP40_easy: 55.8061, KITTI/Overall_BEV_AP40_easy: 67.8049, KITTI/Overall_2D_AP40_easy: 70.6490, KITTI/Overall_3D_AP40_moderate: 44.7719, KITTI/Overall_BEV_AP40_moderate: 56.2426, KITTI/Overall_2D_AP40_moderate: 61.3022, KITTI/Overall_3D_AP40_hard: 40.7203, KITTI/Overall_BEV_AP40_hard: 51.2974, KITTI/Overall_2D_AP40_hard: 57.2098
+2022-07-24 19:58:31,955 - mmdet - INFO - Epoch [5][50/1995]	lr: 2.390e-03, eta: 0:22:15, time: 1.089, data_time: 0.406, memory: 5764, loss_cls: 0.2123, loss_bbox: 0.9520, loss_dir: 0.1314, loss: 1.2957, grad_norm: 0.8316
+2022-07-24 19:59:06,104 - mmdet - INFO - Epoch [5][100/1995]	lr: 2.279e-03, eta: 0:21:40, time: 0.683, data_time: 0.010, memory: 5764, loss_cls: 0.2079, loss_bbox: 0.9763, loss_dir: 0.1319, loss: 1.3161, grad_norm: 0.8540
+2022-07-24 19:59:39,996 - mmdet - INFO - Epoch [5][150/1995]	lr: 2.169e-03, eta: 0:21:06, time: 0.678, data_time: 0.010, memory: 5764, loss_cls: 0.2080, loss_bbox: 0.9937, loss_dir: 0.1310, loss: 1.3327, grad_norm: 0.7914
+2022-07-24 20:00:14,106 - mmdet - INFO - Epoch [5][200/1995]	lr: 2.062e-03, eta: 0:20:31, time: 0.682, data_time: 0.010, memory: 5764, loss_cls: 0.2038, loss_bbox: 0.9952, loss_dir: 0.1288, loss: 1.3278, grad_norm: 0.7908
+2022-07-24 20:00:47,862 - mmdet - INFO - Epoch [5][250/1995]	lr: 1.957e-03, eta: 0:19:57, time: 0.675, data_time: 0.010, memory: 5764, loss_cls: 0.2059, loss_bbox: 0.9531, loss_dir: 0.1288, loss: 1.2878, grad_norm: 0.8085
+2022-07-24 20:01:22,233 - mmdet - INFO - Epoch [5][300/1995]	lr: 1.854e-03, eta: 0:19:23, time: 0.687, data_time: 0.010, memory: 5764, loss_cls: 0.2008, loss_bbox: 0.9388, loss_dir: 0.1291, loss: 1.2687, grad_norm: 0.7855
+2022-07-24 20:01:56,431 - mmdet - INFO - Epoch [5][350/1995]	lr: 1.753e-03, eta: 0:18:48, time: 0.684, data_time: 0.010, memory: 5764, loss_cls: 0.2112, loss_bbox: 0.9812, loss_dir: 0.1299, loss: 1.3223, grad_norm: 0.7587
+2022-07-24 20:02:30,843 - mmdet - INFO - Epoch [5][400/1995]	lr: 1.654e-03, eta: 0:18:14, time: 0.688, data_time: 0.010, memory: 5764, loss_cls: 0.2042, loss_bbox: 0.9911, loss_dir: 0.1311, loss: 1.3264, grad_norm: 0.7559
+2022-07-24 20:03:05,038 - mmdet - INFO - Epoch [5][450/1995]	lr: 1.558e-03, eta: 0:17:40, time: 0.684, data_time: 0.010, memory: 5764, loss_cls: 0.1980, loss_bbox: 0.9561, loss_dir: 0.1301, loss: 1.2841, grad_norm: 0.7690
+2022-07-24 20:03:38,804 - mmdet - INFO - Epoch [5][500/1995]	lr: 1.464e-03, eta: 0:17:05, time: 0.675, data_time: 0.010, memory: 5764, loss_cls: 0.1997, loss_bbox: 0.9405, loss_dir: 0.1312, loss: 1.2714, grad_norm: 0.8590
+2022-07-24 20:04:12,670 - mmdet - INFO - Epoch [5][550/1995]	lr: 1.373e-03, eta: 0:16:31, time: 0.677, data_time: 0.010, memory: 5764, loss_cls: 0.2041, loss_bbox: 0.9205, loss_dir: 0.1294, loss: 1.2540, grad_norm: 0.8065
+2022-07-24 20:04:46,403 - mmdet - INFO - Epoch [5][600/1995]	lr: 1.283e-03, eta: 0:15:57, time: 0.675, data_time: 0.010, memory: 5764, loss_cls: 0.2012, loss_bbox: 0.9513, loss_dir: 0.1309, loss: 1.2834, grad_norm: 0.8488
+2022-07-24 20:05:20,702 - mmdet - INFO - Epoch [5][650/1995]	lr: 1.197e-03, eta: 0:15:22, time: 0.686, data_time: 0.010, memory: 5764, loss_cls: 0.2038, loss_bbox: 0.9717, loss_dir: 0.1308, loss: 1.3063, grad_norm: 0.8688
+2022-07-24 20:05:54,806 - mmdet - INFO - Epoch [5][700/1995]	lr: 1.113e-03, eta: 0:14:48, time: 0.682, data_time: 0.010, memory: 5764, loss_cls: 0.2026, loss_bbox: 0.9326, loss_dir: 0.1289, loss: 1.2641, grad_norm: 0.7643
+2022-07-24 20:06:29,401 - mmdet - INFO - Epoch [5][750/1995]	lr: 1.032e-03, eta: 0:14:14, time: 0.692, data_time: 0.010, memory: 5764, loss_cls: 0.2042, loss_bbox: 0.9601, loss_dir: 0.1308, loss: 1.2952, grad_norm: 0.7557
+2022-07-24 20:07:03,718 - mmdet - INFO - Epoch [5][800/1995]	lr: 9.535e-04, eta: 0:13:39, time: 0.686, data_time: 0.010, memory: 5764, loss_cls: 0.1980, loss_bbox: 0.9594, loss_dir: 0.1296, loss: 1.2871, grad_norm: 0.7418
+2022-07-24 20:07:38,113 - mmdet - INFO - Epoch [5][850/1995]	lr: 8.778e-04, eta: 0:13:05, time: 0.688, data_time: 0.010, memory: 5764, loss_cls: 0.2038, loss_bbox: 0.9337, loss_dir: 0.1315, loss: 1.2691, grad_norm: 0.7744
+2022-07-24 20:08:12,643 - mmdet - INFO - Epoch [5][900/1995]	lr: 8.050e-04, eta: 0:12:31, time: 0.691, data_time: 0.010, memory: 5764, loss_cls: 0.2009, loss_bbox: 0.9399, loss_dir: 0.1295, loss: 1.2702, grad_norm: 0.7986
+2022-07-24 20:08:46,792 - mmdet - INFO - Epoch [5][950/1995]	lr: 7.350e-04, eta: 0:11:56, time: 0.683, data_time: 0.010, memory: 5764, loss_cls: 0.2017, loss_bbox: 0.9552, loss_dir: 0.1291, loss: 1.2859, grad_norm: 0.7911
+2022-07-24 20:09:20,853 - mmdet - INFO - Epoch [5][1000/1995]	lr: 6.680e-04, eta: 0:11:22, time: 0.681, data_time: 0.010, memory: 5764, loss_cls: 0.1993, loss_bbox: 0.9238, loss_dir: 0.1298, loss: 1.2528, grad_norm: 0.8080
+2022-07-24 20:09:54,892 - mmdet - INFO - Epoch [5][1050/1995]	lr: 6.040e-04, eta: 0:10:48, time: 0.681, data_time: 0.010, memory: 5764, loss_cls: 0.2023, loss_bbox: 0.9484, loss_dir: 0.1324, loss: 1.2831, grad_norm: 0.7808
+2022-07-24 20:10:29,303 - mmdet - INFO - Epoch [5][1100/1995]	lr: 5.430e-04, eta: 0:10:13, time: 0.688, data_time: 0.010, memory: 5764, loss_cls: 0.2021, loss_bbox: 0.9408, loss_dir: 0.1298, loss: 1.2727, grad_norm: 0.7885
+2022-07-24 20:11:03,720 - mmdet - INFO - Epoch [5][1150/1995]	lr: 4.851e-04, eta: 0:09:39, time: 0.688, data_time: 0.010, memory: 5764, loss_cls: 0.2004, loss_bbox: 0.9426, loss_dir: 0.1302, loss: 1.2732, grad_norm: 0.7466
+2022-07-24 20:11:38,061 - mmdet - INFO - Epoch [5][1200/1995]	lr: 4.302e-04, eta: 0:09:05, time: 0.687, data_time: 0.010, memory: 5764, loss_cls: 0.1939, loss_bbox: 0.9158, loss_dir: 0.1296, loss: 1.2393, grad_norm: 0.7278
+2022-07-24 20:12:12,394 - mmdet - INFO - Epoch [5][1250/1995]	lr: 3.786e-04, eta: 0:08:31, time: 0.687, data_time: 0.010, memory: 5764, loss_cls: 0.2034, loss_bbox: 0.9286, loss_dir: 0.1307, loss: 1.2627, grad_norm: 0.7171
+2022-07-24 20:12:46,758 - mmdet - INFO - Epoch [5][1300/1995]	lr: 3.301e-04, eta: 0:07:56, time: 0.687, data_time: 0.010, memory: 5764, loss_cls: 0.2016, loss_bbox: 0.9288, loss_dir: 0.1315, loss: 1.2619, grad_norm: 0.7461
+2022-07-24 20:13:20,646 - mmdet - INFO - Epoch [5][1350/1995]	lr: 2.848e-04, eta: 0:07:22, time: 0.678, data_time: 0.010, memory: 5764, loss_cls: 0.1997, loss_bbox: 0.9059, loss_dir: 0.1290, loss: 1.2345, grad_norm: 0.7505
+2022-07-24 20:13:54,789 - mmdet - INFO - Epoch [5][1400/1995]	lr: 2.428e-04, eta: 0:06:48, time: 0.683, data_time: 0.010, memory: 5764, loss_cls: 0.2026, loss_bbox: 0.9302, loss_dir: 0.1307, loss: 1.2635, grad_norm: 0.7467
+2022-07-24 20:14:29,166 - mmdet - INFO - Epoch [5][1450/1995]	lr: 2.040e-04, eta: 0:06:13, time: 0.688, data_time: 0.010, memory: 5764, loss_cls: 0.1965, loss_bbox: 0.9167, loss_dir: 0.1297, loss: 1.2429, grad_norm: 0.7075
+2022-07-24 20:15:03,771 - mmdet - INFO - Epoch [5][1500/1995]	lr: 1.686e-04, eta: 0:05:39, time: 0.692, data_time: 0.010, memory: 5764, loss_cls: 0.2072, loss_bbox: 0.9221, loss_dir: 0.1291, loss: 1.2585, grad_norm: 0.7393
+2022-07-24 20:15:38,533 - mmdet - INFO - Epoch [5][1550/1995]	lr: 1.365e-04, eta: 0:05:05, time: 0.695, data_time: 0.010, memory: 5764, loss_cls: 0.1978, loss_bbox: 0.9159, loss_dir: 0.1290, loss: 1.2427, grad_norm: 0.7246
+2022-07-24 20:16:12,771 - mmdet - INFO - Epoch [5][1600/1995]	lr: 1.077e-04, eta: 0:04:30, time: 0.685, data_time: 0.010, memory: 5764, loss_cls: 0.2006, loss_bbox: 0.9384, loss_dir: 0.1284, loss: 1.2674, grad_norm: 0.7556
+2022-07-24 20:16:47,130 - mmdet - INFO - Epoch [5][1650/1995]	lr: 8.234e-05, eta: 0:03:56, time: 0.687, data_time: 0.010, memory: 5764, loss_cls: 0.2009, loss_bbox: 0.9172, loss_dir: 0.1294, loss: 1.2474, grad_norm: 0.7547
+2022-07-24 20:17:21,319 - mmdet - INFO - Epoch [5][1700/1995]	lr: 6.033e-05, eta: 0:03:22, time: 0.684, data_time: 0.010, memory: 5764, loss_cls: 0.2042, loss_bbox: 0.9347, loss_dir: 0.1307, loss: 1.2696, grad_norm: 0.8031
+2022-07-24 20:17:55,742 - mmdet - INFO - Epoch [5][1750/1995]	lr: 4.173e-05, eta: 0:02:48, time: 0.688, data_time: 0.010, memory: 5764, loss_cls: 0.2025, loss_bbox: 0.9145, loss_dir: 0.1285, loss: 1.2454, grad_norm: 0.7629
+2022-07-24 20:18:30,287 - mmdet - INFO - Epoch [5][1800/1995]	lr: 2.654e-05, eta: 0:02:13, time: 0.691, data_time: 0.010, memory: 5764, loss_cls: 0.1959, loss_bbox: 0.9139, loss_dir: 0.1310, loss: 1.2409, grad_norm: 0.7714
+2022-07-24 20:19:05,113 - mmdet - INFO - Epoch [5][1850/1995]	lr: 1.478e-05, eta: 0:01:39, time: 0.697, data_time: 0.010, memory: 5764, loss_cls: 0.2015, loss_bbox: 0.9280, loss_dir: 0.1311, loss: 1.2606, grad_norm: 0.7158
+2022-07-24 20:19:39,345 - mmdet - INFO - Epoch [5][1900/1995]	lr: 6.447e-06, eta: 0:01:05, time: 0.685, data_time: 0.010, memory: 5764, loss_cls: 0.1968, loss_bbox: 0.8956, loss_dir: 0.1298, loss: 1.2222, grad_norm: 0.7478
+2022-07-24 20:20:14,274 - mmdet - INFO - Epoch [5][1950/1995]	lr: 1.557e-06, eta: 0:00:30, time: 0.699, data_time: 0.010, memory: 5764, loss_cls: 0.2014, loss_bbox: 0.9168, loss_dir: 0.1295, loss: 1.2477, grad_norm: 0.7537
+2022-07-24 20:20:44,350 - mmdet - INFO - Saving checkpoint at 5 epochs
