@@ -22,15 +22,29 @@ Install Cuda, tensorflow, all other prerequisite from the mentioned documentatio
 
 ### Part 3 - Epoch execution 
 
-<img width="1440" alt="Screen Shot 2022-07-24 at 6 28 42 PM" src="https://user-images.githubusercontent.com/78194318/180707073-711111da-1813-4ba0-b18e-ed4c93bbdb62.png">
-<img width="1440" alt="Screen Shot 2022-07-24 at 6 28 44 PM" src="https://user-images.githubusercontent.com/78194318/180707081-da69f266-375c-479c-a897-721e6fb63f69.png">
-<img width="1440" alt="Screen Shot 2022-07-24 at 6 28 46 PM" src="https://user-images.githubusercontent.com/78194318/180707085-f8b2b835-2268-43b3-937b-1ddd5298b0b5.png">
-<img width="1440" alt="Screen Shot 2022-07-24 at 6 28 48 PM" src="https://user-images.githubusercontent.com/78194318/180707087-b75192ad-af04-46e6-a47e-53e03fd28b86.png">
-<img width="1440" alt="Screen Shot 2022-07-24 at 6 28 50 PM" src="https://user-images.githubusercontent.com/78194318/180707090-888c1f4f-fc4e-4b6e-8671-d4ff38bcca3b.png">
-<img width="1440" alt="Screen Shot 2022-07-24 at 7 11 17 PM" src="https://user-images.githubusercontent.com/78194318/180707092-b1b37a1c-a983-4e52-8d9b-5290d8450414.png">
-<img width="1440" alt="Screen Shot 2022-07-24 at 7 11 20 PM" src="https://user-images.githubusercontent.com/78194318/180707095-b892b6bc-b2ab-4ba5-b0d3-28595e866cf4.png">
-<img width="1440" alt="Screen Shot 2022-07-24 at 7 11 22 PM" src="https://user-images.githubusercontent.com/78194318/180707098-a611f8ee-f7f7-4c7f-b126-8c732402377d.png">
 <img width="1440" alt="Screen Shot 2022-07-24 at 7 13 58 PM" src="https://user-images.githubusercontent.com/78194318/180707103-a5947f40-fb35-4a8f-a80f-a818d000df3b.png">
 <img width="1440" alt="Screen Shot 2022-07-24 at 7 25 47 PM" src="https://user-images.githubusercontent.com/78194318/180707108-c12a840d-750f-4bf6-b0e3-7ead2a9ec442.png">
 <img width="1440" alt="Screen Shot 2022-07-24 at 7 48 18 PM" src="https://user-images.githubusercontent.com/78194318/180707112-9d131178-5104-4742-93aa-64f85c673ab6.png">
 <img width="1440" alt="Screen Shot 2022-07-24 at 7 55 27 PM" src="https://user-images.githubusercontent.com/78194318/180707114-6a23e46f-13eb-4156-9553-9858cd9d9115.png">
+
+### Part 4 - Evaluation Metrics 
+
+###### Introduction
+Calculate overlap between two set of bboxes.
+If is_aligned is False, then calculate the ious between each bbox of bboxes1 and bboxes2, otherwise the ious between each aligned pair of bboxes1 and bboxes2.
+
+###### Command 
+bash tools/dist_test.sh configs/pointpillars/hv_pointpillars_secfpn_6x8_160e_kitti-3d-3class.py work_dirs/hv_pointpillars_secfpn_6x8_160e_kitti-3d-3class/latest.pth 1 --eval bbox
+
+<img width="1440" alt="Screen Shot 2022-07-24 at 8 26 44 PM" src="https://user-images.githubusercontent.com/78194318/180707825-3c4eb973-8da5-4e2b-841b-87172bc533c7.png">
+<img width="1440" alt="Screen Shot 2022-07-24 at 8 26 47 PM" src="https://user-images.githubusercontent.com/78194318/180707836-6009ec04-7024-4c5e-88a2-b170f34cc6bf.png">
+<img width="1440" alt="Screen Shot 2022-07-24 at 8 26 49 PM" src="https://user-images.githubusercontent.com/78194318/180707843-d1af0ae4-5048-40d6-b76b-8ae06a4cc8d4.png">
+<img width="1440" alt="Screen Shot 2022-07-24 at 8 30 09 PM" src="https://user-images.githubusercontent.com/78194318/180707847-20337b74-20a5-48aa-b989-838d7e28f1a0.png">
+
+
+### Part 5 - inference pipeline
+
+<img width="1440" alt="Screen Shot 2022-07-24 at 9 39 34 PM" src="https://user-images.githubusercontent.com/78194318/180708081-58381d2d-70b1-4b58-9eb0-ae1be0a76634.png">
+<img width="1440" alt="Screen Shot 2022-07-24 at 9 57 35 PM" src="https://user-images.githubusercontent.com/78194318/180708099-91d664a1-f8e6-4df1-9f1f-4125fd726439.png">
+<img width="1440" alt="Screen Shot 2022-07-24 at 10 10 40 PM" src="https://user-images.githubusercontent.com/78194318/180708102-9c899a20-35e0-4809-87de-cf6be27ba24c.png">
+
