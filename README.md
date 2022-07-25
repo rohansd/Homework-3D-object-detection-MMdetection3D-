@@ -45,6 +45,9 @@ bash tools/dist_test.sh configs/pointpillars/hv_pointpillars_secfpn_6x8_160e_kit
 ### Part 5 - inference pipeline
 
 <img width="1440" alt="Screen Shot 2022-07-24 at 9 39 34 PM" src="https://user-images.githubusercontent.com/78194318/180708081-58381d2d-70b1-4b58-9eb0-ae1be0a76634.png">
-<img width="1440" alt="Screen Shot 2022-07-24 at 9 57 35 PM" src="https://user-images.githubusercontent.com/78194318/180708099-91d664a1-f8e6-4df1-9f1f-4125fd726439.png">
-<img width="1440" alt="Screen Shot 2022-07-24 at 10 10 40 PM" src="https://user-images.githubusercontent.com/78194318/180708102-9c899a20-35e0-4809-87de-cf6be27ba24c.png">
+
+<img width="1440" alt="Screen Shot 2022-07-24 at 10 59 32 PM" src="https://user-images.githubusercontent.com/78194318/180708565-5e8bcb59-e0d7-4fc0-9a9b-2b157f3d29fe.png">
+<img width="1440" alt="Screen Shot 2022-07-24 at 11 00 01 PM" src="https://user-images.githubusercontent.com/78194318/180708576-3649a7f5-8ec1-468a-a5fb-403306c696e0.png">
+<img width="1440" alt="Screen Shot 2022-07-24 at 11 00 23 PM" src="https://user-images.githubusercontent.com/78194318/180708579-8cb43514-3771-4ac6-b39a-ba23333aed90.png">
+<img width="1440" alt="Screen Shot 2022-07-24 at 11 00 46 PM" src="https://user-images.githubusercontent.com/78194318/180708583-f009e1f7-19de-4dad-a44d-c75cce94441f.png">
 
